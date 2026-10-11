@@ -82,104 +82,111 @@
         </form>
     </div>
 
+    <!-- Firebase Integration Script -->
     <script type="module">
-        // Firebase v10 SDK Imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 
-        // IMPORTANT: Replace this with your actual Firebase config from your project settings
+        // Integrated Firebase Configuration 
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
+            authDomain: "ee-laboratory-digital-logbook.firebaseapp.com",
+            projectId: "ee-laboratory-digital-logbook",
+            storageBucket: "ee-laboratory-digital-logbook.firebasestorage.app",
+            messagingSenderId: "1065618016813",
+            appId: "1:1065618016813:web:c579b08fa406ec449946a4",
+            measurementId: "G-RT82Q2ZWPZ"
         };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        
-        // Setup Google Provider & enforce addu.edu.ph domain
         const provider = new GoogleAuthProvider();
+
+        // Restrict Google Sign-In to @addu.edu.ph domain (optional security layer on client side)
         provider.setCustomParameters({ hd: "addu.edu.ph" });
 
         // DOM Elements
-        const signInBtn = document.getElementById('signInBtn');
-        const loginCard = document.getElementById('loginCard');
-        const setupCard = document.getElementById('setupCard');
-        const setupForm = document.getElementById('setupForm');
-        const studentNameInput = document.getElementById('studentName');
-        const loginError = document.getElementById('loginError');
+        const signInBtn = document.getElementById("signInBtn");
+        const loginCard = document.getElementById("loginCard");
+        const setupCard = document.getElementById("setupCard");
+        const loginError = document.getElementById("loginError");
+        const setupForm = document.getElementById("setupForm");
 
         let currentUser = null;
 
-        // Handle Google Sign-In
-        signInBtn.addEventListener('click', async () => {
-            try {
-                loginError.style.display = 'none';
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                
-                // Strict Domain Locking
-                if (!user.email.endsWith('@addu.edu.ph')) {
-                    await signOut(auth);
-                    loginError.textContent = 'Access Denied: Please use your @addu.edu.ph account.';
-                    loginError.style.display = 'block';
-                    return;
-                }
+        // Automatically redirect if the user is already logged in
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Verify if the user already has a profile setup in Firestore
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
 
-                currentUser = user;
-                
-                // Check if profile is already in Firestore
-                const userDocRef = doc(db, "users", user.uid);
-                const userDoc = await getDoc(userDocRef);
-                
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    // Redirect based on role (Admin goes to admin dashboard, student goes to student UI)
-                    if (userData.role === 'admin') {
-                        window.location.href = 'admin.html';
-                    } else {
-                        window.location.href = 'student.html';
-                    }
-                } else {
-                    // First time login: Show Setup Form
-                    loginCard.classList.add('hidden');
-                    setupCard.classList.remove('hidden');
-                    studentNameInput.value = user.displayName; // Pre-fill name from Google
+                if (userSnap.exists()) {
+                    window.location.href = "student.html"; 
                 }
-            } catch (error) {
-                console.error("Auth error:", error);
-                loginError.textContent = 'Authentication failed. Please try again.';
-                loginError.style.display = 'block';
             }
         });
 
-        // Handle First-Time Profile Setup
-        setupForm.addEventListener('submit', async (e) => {
+        // Trigger Google Sign In
+        signInBtn.addEventListener("click", async () => {
+            try {
+                loginError.style.display = "none";
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+
+                // Verify email domain constraint
+                if (!user.email.endsWith("@addu.edu.ph")) {
+                    await auth.signOut();
+                    loginError.textContent = "Please use your official @addu.edu.ph email.";
+                    loginError.style.display = "block";
+                    return;
+                }
+
+                // Check if user already exists in Firestore database
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    // Profile exists, redirect to dashboard
+                    window.location.href = "student.html";
+                } else {
+                    // First time login - Show Profile Setup Form
+                    currentUser = user;
+                    document.getElementById("studentName").value = user.displayName || "";
+                    loginCard.classList.add("hidden");
+                    setupCard.classList.remove("hidden");
+                }
+            } catch (error) {
+                console.error("Login Error:", error);
+                loginError.textContent = "Failed to sign in. Please try again.";
+                loginError.style.display = "block";
+            }
+        });
+
+        // Handle Profile Submission for new users
+        setupForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             if (!currentUser) return;
 
-            const studentData = {
-                name: studentNameInput.value,
-                email: currentUser.email,
-                idNumber: document.getElementById('studentId').value,
-                yearLevel: document.getElementById('yearLevel').value,
-                program: document.getElementById('program').value,
-                role: 'student' // Force student role by default
-            };
-
             try {
-                // Save to Firestore 'users' collection
-                await setDoc(doc(db, "users", currentUser.uid), studentData);
-                window.location.href = 'student.html'; // Redirect to student UI
+                // Save the new user document to Firestore
+                await setDoc(doc(db, "users", currentUser.uid), {
+                    name: currentUser.displayName || document.getElementById("studentName").value,
+                    email: currentUser.email,
+                    studentId: document.getElementById("studentId").value,
+                    yearLevel: document.getElementById("yearLevel").value,
+                    program: document.getElementById("program").value,
+                    createdAt: new Date()
+                });
+
+                // Redirect to the student dashboard upon successful save
+                window.location.href = "student.html";
             } catch (error) {
-                console.error("Firestore error:", error);
-                alert("Failed to save profile.");
+                console.error("Profile saving error:", error);
+                alert("Failed to save profile details. Please try again.");
             }
         });
     </script>
