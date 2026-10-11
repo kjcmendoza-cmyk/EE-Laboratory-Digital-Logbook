@@ -160,10 +160,11 @@
                     setupCard.classList.remove("hidden");
                 }
             } catch (error) {
-                console.error("Login Error:", error);
-                loginError.textContent = "Failed to sign in. Please try again.";
-                loginError.style.display = "block";
-            }
+    console.error("Login Error:", error);
+    // Displays the exact Firebase error message for easier debugging
+    loginError.textContent = error.message || "Authentication failed. Please try again.";
+    loginError.style.display = "block";
+}
         });
 
         // Handle Profile Submission for new users
