@@ -1,116 +1,132 @@
-// ... (Keep your existing Firebase imports and initialization here) ...
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, updateDoc, doc, query, where, getDocs, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 
-// DOM Elements for Dashboard[cite: 1]
-const studentName = document.getElementById('student-name');
-const toastMsg = document.getElementById('toast-msg');
-const preCheckinBtn = document.getElementById('pre-checkin-btn');
-const checkoutBtn = document.getElementById('checkout-btn');
-const statusDisplay = document.getElementById('status-display');
-const purposeModal = document.getElementById('purpose-modal');
+// Integrated Firebase Configuration from provided screenshot
+const firebaseConfig = {
+    apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
+    authDomain: "ee-laboratory-digital-logbook.firebaseapp.com",
+    projectId: "ee-laboratory-digital-logbook",
+    storageBucket: "ee-laboratory-digital-logbook.firebasestorage.app",
+    messagingSenderId: "1065618016813",
+    appId: "1:1065618016813:web:c579b08fa406ec449946a4",
+    measurementId: "G-RT82Q2ZWPZ"
+};
 
-let activeSessionId = null;[cite: 1]
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-// --- AUTH PROTECTOR ---
+// DOM Elements
+const userInfo = document.getElementById('userInfo');
+const checkInView = document.getElementById('checkInView');
+const checkOutView = document.getElementById('checkOutView');
+const currentPurpose = document.getElementById('currentPurpose');
+const checkOutBtn = document.getElementById('checkOutBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const notifBanner = document.getElementById('notifBanner');
+const purposeBtns = document.querySelectorAll('.btn-purpose');
+
+let activeSessionId = null;
+let currentUserData = null;
+
+// Authentication State Listener
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        studentName.innerText = user.displayName.split(' ')[0]; // Shows first name[cite: 1]
-        checkCurrentStatus(user);[cite: 1]
+        userInfo.textContent = `Logged in as: ${user.email}`;
+        currentUserData = user;
+        checkCurrentStatus(user.uid);
     } else {
-        // Redirect to login if not authenticated
-        window.location.href = "login.html";
+        window.location.href = 'login.html';
     }
 });
 
-document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));[cite: 1]
-
-// --- CONTEXT-AWARE SMART UI ---[cite: 1]
-async function checkCurrentStatus(user) {
-    const q = query(
-        collection(db, "sessions"), 
-        where("email", "==", user.email),
-        where("status", "==", "Inside")
-    );
+// Smart UI: Check if student is already inside
+async function checkCurrentStatus(uid) {
+    const sessionsRef = collection(db, "sessions");
+    const q = query(sessionsRef, where("uid", "==", uid), where("status", "==", "Inside"), limit(1));
     
     const querySnapshot = await getDocs(q);
-    
     if (!querySnapshot.empty) {
-        // Student is inside
-        activeSessionId = querySnapshot.docs[0].id;
-        preCheckinBtn.classList.add('hidden');
-        checkoutBtn.classList.remove('hidden');
-        statusDisplay.innerText = "● CURRENTLY INSIDE";
-        statusDisplay.style.color = "#48BB78"; 
-        statusDisplay.style.backgroundColor = "#E6FFFA";
+        // User is Inside
+        const sessionDoc = querySnapshot.docs[0];
+        activeSessionId = sessionDoc.id;
+        currentPurpose.textContent = sessionDoc.data().purpose;
+        
+        checkInView.classList.add('hidden');
+        checkOutView.classList.remove('hidden');
     } else {
-        // Student is outside
-        activeSessionId = null;
-        checkoutBtn.classList.add('hidden');
-        preCheckinBtn.classList.remove('hidden');
-        statusDisplay.innerText = "● CHECKED OUT";
-        statusDisplay.style.color = "var(--text-muted)";
-        statusDisplay.style.backgroundColor = "#EDF2F7";
+        // User is Outside
+        checkOutView.classList.add('hidden');
+        checkInView.classList.remove('hidden');
     }
 }
 
-// --- MODAL LOGIC ---[cite: 1]
-preCheckinBtn.addEventListener('click', () => {
-    purposeModal.classList.remove('hidden');
-});
-
-document.getElementById('close-modal-btn').addEventListener('click', () => {
-    purposeModal.classList.add('hidden');
-});
-
-// --- CHECK-IN LOGIC ---[cite: 1]
-document.querySelectorAll('.purpose-btn').forEach(btn => {
+// Handle Check-In
+purposeBtns.forEach(btn => {
     btn.addEventListener('click', async (e) => {
         const purpose = e.target.getAttribute('data-purpose');
-        const user = auth.currentUser;
-        
-        if (!user) return;
-
         try {
-            await addDoc(collection(db, "sessions"), {
-                name: user.displayName,
-                email: user.email,
+            const sessionData = {
+                uid: currentUserData.uid,
+                email: currentUserData.email,
+                name: currentUserData.displayName || currentUserData.email,
                 purpose: purpose,
-                timeIn: serverTimestamp(),
-                timeOut: null,
-                status: "Inside"
-            });
+                status: "Inside",
+                checkInTime: serverTimestamp()
+            };
             
-            showToast("Checked In Successfully!", "green");
-            purposeModal.classList.add('hidden');
-            checkCurrentStatus(user);
+            const docRef = await addDoc(collection(db, "sessions"), sessionData);
+            activeSessionId = docRef.id;
+            
+            showNotification("Checked In Successfully", "notif-green");
+            
+            // Switch UI Context
+            currentPurpose.textContent = purpose;
+            checkInView.classList.add('hidden');
+            checkOutView.classList.remove('hidden');
+            
         } catch (error) {
-            console.error("Error checking in: ", error);
+            console.error("Check-in error:", error);
+            alert("Error checking in. Please check connection.");
         }
     });
 });
 
-// --- CHECK-OUT LOGIC ---[cite: 1]
-checkoutBtn.addEventListener('click', async () => {
+// Handle Check-Out
+checkOutBtn.addEventListener('click', async () => {
     if (!activeSessionId) return;
-
+    
     try {
         const sessionRef = doc(db, "sessions", activeSessionId);
         await updateDoc(sessionRef, {
-            timeOut: serverTimestamp(),
-            status: "Checked Out"
+            status: "Checked Out",
+            checkOutTime: serverTimestamp()
         });
-
-        showToast("Checked Out!", "red");
-        checkCurrentStatus(auth.currentUser);
+        
+        activeSessionId = null;
+        showNotification("Checked Out Successfully", "notif-red");
+        
+        // Switch UI Context
+        checkOutView.classList.add('hidden');
+        checkInView.classList.remove('hidden');
+        
     } catch (error) {
-        console.error("Error checking out: ", error);
+        console.error("Check-out error:", error);
+        alert("Error checking out.");
     }
 });
 
-// --- INSTANT VISUAL CONFIRMATION ---[cite: 1]
-function showToast(message, colorClass) {
-    toastMsg.innerText = message;
-    toastMsg.className = `toast ${colorClass}`;
+// Flash notification helper
+function showNotification(msg, colorClass) {
+    notifBanner.textContent = msg;
+    notifBanner.className = `notification ${colorClass} show-notif`;
     setTimeout(() => {
-        toastMsg.className = 'toast hidden';
+        notifBanner.classList.remove('show-notif');
     }, 2500);
 }
+
+// Handle Logout
+logoutBtn.addEventListener('click', () => {
+    signOut(auth);
+});

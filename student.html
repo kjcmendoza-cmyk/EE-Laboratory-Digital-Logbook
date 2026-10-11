@@ -3,86 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Logbook - Dashboard</title>
+    <title>ADDU Lab | Student Check-In</title>
     <style>
-        /* Include ALL your styles from the original index.html here */
         :root {
-            --bg-color: #EEF2FB; --text-main: #2D3748; --text-muted: #718096;
-            --primary-blue: #D9E2FC; --primary-blue-text: #5A7BFA;
-            --btn-green: #68D3A6; --btn-red: #FC8181; --card-bg: #FFFFFF;
+            --primary: #003366; 
+            --bg: #f4f7f6;
+            --text: #333;
+            --success: #28a745;
+            --danger: #dc3545;
         }
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; color: var(--text-main); }
-        .container { width: 100%; max-width: 400px; }
-        .header-section { text-align: center; margin-bottom: 20px; }
-        .portal-badge { background: var(--primary-blue); color: var(--primary-blue-text); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
-        h1 { margin: 5px 0; font-size: 24px; color: #1A202C; }
-        p.subtitle { color: var(--text-muted); font-size: 12px; margin: 0; }
-        .card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-        .user-card { display: flex; justify-content: space-between; align-items: center; }
-        .user-info-text { flex-grow: 1; padding-left: 15px; }
-        .user-name { font-weight: bold; font-size: 16px; margin: 0; }
-        .user-details { color: var(--primary-blue-text); font-size: 12px; margin: 0; }
-        .logout-btn { background: #FEE2E2; color: #E53E3E; border: none; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .status-area { text-align: center; }
-        .status-label { font-size: 12px; font-weight: bold; color: var(--text-muted); letter-spacing: 1px; }
-        .status-pill { display: inline-block; background: #EDF2F7; color: var(--text-muted); padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; margin: 15px 0; }
-        .status-instruction { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
-        .main-action-btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; transition: transform 0.1s; }
-        .main-action-btn:active { transform: scale(0.98); }
-        .btn-checkin { background-color: var(--btn-green); }
-        .btn-checkout { background-color: var(--btn-red); }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 350px; text-align: center; }
-        .purpose-btn { width: 100%; padding: 15px; margin-bottom: 10px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; }
-        .btn-lab { background-color: #4A90E2; } .btn-class { background-color: #F5A623; } .btn-rest { background-color: #9B9B9B; }
-        .btn-cancel { background: none; color: var(--text-muted); border: none; margin-top: 10px; cursor: pointer; font-weight: bold;}
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 15px 25px; border-radius: 8px; color: white; font-weight: bold; display: none; z-index: 2000; }
-        .toast.green { background-color: #28a745; display: block; }
-        .toast.red { background-color: #D0021B; display: block; }
-        .hidden { display: none !important; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            color: var(--text);
+            text-align: center;
+        }
+        .container {
+            background: white; 
+            padding: 2.5rem; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 450px; 
+        }
+        .header { margin-bottom: 20px; }
+        .header h2 { color: var(--primary); margin: 0 0 5px 0; }
+        .user-info { font-size: 14px; color: #666; margin-bottom: 20px;}
+        
+        .hidden { display: none; }
+        
+        /* Check-In Buttons */
+        .btn-purpose {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            background: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .btn-purpose:hover { border-color: var(--primary); background: #f0f8ff; }
+        
+        /* Check-Out Button */
+        .btn-checkout {
+            display: block;
+            width: 100%;
+            padding: 25px;
+            margin: 20px 0;
+            border: none;
+            border-radius: 12px;
+            background: var(--danger);
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+            transition: transform 0.1s;
+        }
+        .btn-checkout:active { transform: scale(0.98); }
+
+        /* Notification Banner */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .notif-green { background-color: var(--success); }
+        .notif-red { background-color: var(--danger); }
+        .show-notif { opacity: 1; }
+        
+        .logout { margin-top: 20px; font-size: 14px; color: #888; text-decoration: underline; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="toast-msg" class="toast"></div>
+
+    <div class="notification" id="notifBanner">Status Updated</div>
 
     <div class="container">
-        <div class="header-section">
-            <div class="portal-badge">⚡ EE COMPUTER LABORATORY PORTAL</div>
-            <h1>Digital Logbook</h1>
-            <p class="subtitle">Federation of United Students of Electrical Engineering</p>
+        <div class="header">
+            <h2>EE Laboratory</h2>
+            <div class="user-info" id="userInfo">Loading profile...</div>
         </div>
 
-        <div id="app-screen">
-            <div class="card user-card">
-                <div class="user-info-text">
-                    <p class="user-name">Hello, <span id="student-name">Student</span>!</p>
-                    <p class="user-details">AdDU Student</p>
-                </div>
-                <button class="logout-btn" id="logout-btn">Log Out</button>
-            </div>
-
-            <div class="card status-area">
-                <div class="status-label">CURRENT LABORATORY STATUS</div>
-                <div id="status-display" class="status-pill">● CHECKED OUT</div>
-                <p class="status-instruction">Tap below when entering or leaving</p>
-                <button id="pre-checkin-btn" class="main-action-btn btn-checkin hidden">CHECK IN TO LABORATORY</button>
-                <button id="checkout-btn" class="main-action-btn btn-checkout hidden">CHECK OUT OF LABORATORY</button>
-            </div>
+        <!-- VIEW: OUTSIDE (Requires Check-In) -->
+        <div id="checkInView" class="hidden">
+            <p>Select your purpose of entry:</p>
+            <button class="btn-purpose" data-purpose="Laboratory Work">🛠️ Laboratory Work</button>
+            <button class="btn-purpose" data-purpose="Class">📚 Class</button>
+            <button class="btn-purpose" data-purpose="Review / Rest">☕ Review / Rest</button>
         </div>
+
+        <!-- VIEW: INSIDE (Requires Check-Out) -->
+        <div id="checkOutView" class="hidden">
+            <p>You are currently checked in for: <br><strong id="currentPurpose">...</strong></p>
+            <button class="btn-checkout" id="checkOutBtn">Tap to Check Out</button>
+        </div>
+
+        <div class="logout" id="logoutBtn">Sign Out</div>
     </div>
 
-    <!-- PURPOSE SELECTION MODAL -->
-    <div id="purpose-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3 style="margin-top: 0;">Select Purpose</h3>
-            <button class="purpose-btn btn-lab" data-purpose="Laboratory Work">🛠️ Laboratory Work</button>
-            <button class="purpose-btn btn-class" data-purpose="Class">📚 Class</button>
-            <button class="purpose-btn btn-rest" data-purpose="Review / Rest">☕ Review / Rest</button>
-            <button id="close-modal-btn" class="btn-cancel">Cancel</button>
-        </div>
-    </div>
-
-    <script type="module" src="index.js"></script>
+    <!-- External Script -->
+    <script type="module" src="student.js"></script>
 </body>
 </html>

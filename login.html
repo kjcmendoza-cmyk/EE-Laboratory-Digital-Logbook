@@ -3,44 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Logbook - Login</title>
+    <title>ADDU Lab | Login</title>
     <style>
-        /* Include your root variables and base body/container styles here */
         :root {
-            --bg-color: #EEF2FB;
-            --primary-blue: #D9E2FC;
-            --primary-blue-text: #5A7BFA;
-            --card-bg: #FFFFFF;
-            --text-muted: #718096;
+            --primary: #003366; /* Ateneo Blue */
+            --bg: #f4f7f6;
+            --text: #333;
         }
-        body {
-            background-color: var(--bg-color);
-            margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; font-family: sans-serif;
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            color: var(--text);
         }
-        .container { width: 100%; max-width: 400px; }
-        .header-section { text-align: center; margin-bottom: 20px; }
-        .portal-badge { background: var(--primary-blue); color: var(--primary-blue-text); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
-        .card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); text-align: center; }
-        #login-btn { background-color: var(--primary-blue-text); color: white; border: none; padding: 15px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
-        p.subtitle { color: var(--text-muted); font-size: 12px; margin: 0; }
+        .container {
+            background: white; 
+            padding: 2.5rem; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 400px; 
+            text-align: center;
+        }
+        h2 { margin-top: 0; color: var(--primary); }
+        input, select, button { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 16px;
+        }
+        button { 
+            background-color: var(--primary); 
+            color: white; 
+            cursor: pointer; 
+            border: none; 
+            font-weight: bold; 
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #002244; }
+        .hidden { display: none; }
+        .error { color: red; font-size: 14px; margin-bottom: 10px; display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header-section">
-            <div class="portal-badge">⚡ EE COMPUTER LABORATORY PORTAL</div>
-            <h1>Digital Logbook</h1>
-            <p class="subtitle">Federation of United Students of Electrical Engineering</p>
-        </div>
 
-        <div id="login-screen" class="card">
-            <button id="login-btn">Sign in with @addu.edu.ph</button>
-            <p id="login-error" style="color: red; font-size: 14px; margin-top: 10px; text-align: center;"></p>
-        </div>
+    <!-- LOGIN CARD -->
+    <div class="container" id="loginCard">
+        <h2>Lab Check-In System</h2>
+        <p>Please log in using your ADDU Google Account.</p>
+        <p class="error" id="loginError"></p>
+        <button id="signInBtn">Sign in with @addu.edu.ph</button>
     </div>
-    <!-- Point this to a JS file that ONLY handles authentication/redirects -->
-    <script type="module" src="login.js"></script> 
+
+    <!-- PROFILE SETUP CARD (Shown only on first login) -->
+    <div class="container hidden" id="setupCard">
+        <h2>Complete Profile</h2>
+        <p>Please provide your student details.</p>
+        <form id="setupForm">
+            <input type="text" id="studentName" placeholder="Full Name" required readonly>
+            <input type="text" id="studentId" placeholder="ID Number (e.g. 2023-1234)" required>
+            <select id="yearLevel" required>
+                <option value="" disabled selected>Select Year Level</option>
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
+                <option value="5th Year">5th Year</option>
+            </select>
+            <input type="text" id="program" placeholder="Program (e.g. BSCS, BSIT)" required>
+            <button type="submit">Save & Continue</button>
+        </form>
+    </div>
+
+    <script type="module">
+        // Firebase v10 SDK Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // IMPORTANT: Replace this with your actual Firebase config from your project settings
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Setup Google Provider & enforce addu.edu.ph domain
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ hd: "addu.edu.ph" });
+
+        // DOM Elements
+        const signInBtn = document.getElementById('signInBtn');
+        const loginCard = document.getElementById('loginCard');
+        const setupCard = document.getElementById('setupCard');
+        const setupForm = document.getElementById('setupForm');
+        const studentNameInput = document.getElementById('studentName');
+        const loginError = document.getElementById('loginError');
+
+        let currentUser = null;
+
+        // Handle Google Sign-In
+        signInBtn.addEventListener('click', async () => {
+            try {
+                loginError.style.display = 'none';
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                // Strict Domain Locking
+                if (!user.email.endsWith('@addu.edu.ph')) {
+                    await signOut(auth);
+                    loginError.textContent = 'Access Denied: Please use your @addu.edu.ph account.';
+                    loginError.style.display = 'block';
+                    return;
+                }
+
+                currentUser = user;
+                
+                // Check if profile is already in Firestore
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+                
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    // Redirect based on role (Admin goes to admin dashboard, student goes to student UI)
+                    if (userData.role === 'admin') {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'student.html';
+                    }
+                } else {
+                    // First time login: Show Setup Form
+                    loginCard.classList.add('hidden');
+                    setupCard.classList.remove('hidden');
+                    studentNameInput.value = user.displayName; // Pre-fill name from Google
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+                loginError.textContent = 'Authentication failed. Please try again.';
+                loginError.style.display = 'block';
+            }
+        });
+
+        // Handle First-Time Profile Setup
+        setupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const studentData = {
+                name: studentNameInput.value,
+                email: currentUser.email,
+                idNumber: document.getElementById('studentId').value,
+                yearLevel: document.getElementById('yearLevel').value,
+                program: document.getElementById('program').value,
+                role: 'student' // Force student role by default
+            };
+
+            try {
+                // Save to Firestore 'users' collection
+                await setDoc(doc(db, "users", currentUser.uid), studentData);
+                window.location.href = 'student.html'; // Redirect to student UI
+            } catch (error) {
+                console.error("Firestore error:", error);
+                alert("Failed to save profile.");
+            }
+        });
+    </script>
 </body>
 </html>

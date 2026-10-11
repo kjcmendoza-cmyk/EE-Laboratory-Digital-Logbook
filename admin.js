@@ -1,8 +1,8 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, collection, updateDoc, doc, query, where, onSnapshot, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 
-// Applied configuration from image_c539df.png
+// Integrated Firebase Configuration 
 const firebaseConfig = {
     apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
     authDomain: "ee-laboratory-digital-logbook.firebaseapp.com",
@@ -17,107 +17,85 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const provider = new GoogleAuthProvider();
-provider.setCustomParameters({ hd: "addu.edu.ph" });
-
 // DOM Elements
-const loginScreen = document.getElementById('login-screen');
-const appScreen = document.getElementById('app-screen');
-const rosterBody = document.getElementById('roster-body');
-const liveHeadcount = document.getElementById('live-headcount');
-let unsubscribeSnapshot = null;
+const rosterBody = document.getElementById('rosterBody');
+const headcountDisplay = document.getElementById('headcount');
+const logoutBtn = document.getElementById('logoutBtn');
 
-// --- AUTH LOGIC ---
-document.getElementById('login-btn').addEventListener('click', async () => {
-    try { await signInWithPopup(auth, provider); } 
-    catch (error) { console.error(error); }
-});
-
-document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
-
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        if (!user.email.endsWith('@addu.edu.ph')) {
-            document.getElementById('login-error').innerText = "Access denied. Ateneo email required.";
-            await signOut(auth);
-            return;
-        }
-        
-        loginScreen.classList.add('hidden');
-        appScreen.classList.remove('hidden');
-        document.getElementById('admin-name').innerText = user.displayName;
-        
-        startLiveListener();
-    } else {
-        loginScreen.classList.remove('hidden');
-        appScreen.classList.add('hidden');
-        if (unsubscribeSnapshot) unsubscribeSnapshot(); 
+// Security: Ensure only logged-in users see this
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.href = 'login.html';
     }
 });
 
-// --- REAL-TIME LISTENER (onSnapshot) ---
-function startLiveListener() {
-    const q = query(
-        collection(db, "sessions"), 
-        where("status", "==", "Inside"),
-        orderBy("timeIn", "desc") 
-    );
+// 1. REAL-TIME LIVE ROSTER (onSnapshot)
+const sessionsRef = collection(db, "sessions");
+const activeSessionsQuery = query(sessionsRef, where("status", "==", "Inside"));
 
-    unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
-        rosterBody.innerHTML = ""; 
-        liveHeadcount.innerText = snapshot.size; 
+onSnapshot(activeSessionsQuery, (snapshot) => {
+    rosterBody.innerHTML = ''; // Clear table
+    
+    // 2. LIVE HEADCOUNT
+    headcountDisplay.textContent = snapshot.size;
 
-        if (snapshot.empty) {
-            rosterBody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#999;'>No students currently inside.</td></tr>";
-            return;
+    if (snapshot.empty) {
+        rosterBody.innerHTML = `<tr><td colspan="5" class="empty-state">The laboratory is currently empty.</td></tr>`;
+        return;
+    }
+
+    snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const sessionId = docSnap.id;
+        
+        // Format Timestamp (handles cases where serverTimestamp hasn't resolved locally yet)
+        let timeString = "Just now";
+        if (data.checkInTime) {
+            const date = data.checkInTime.toDate();
+            timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const sessionId = docSnap.id;
-            
-            let timeString = "Just now";
-            if (data.timeIn && data.timeIn.toDate) {
-                timeString = data.timeIn.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            }
-
-            let badgeClass = "rest";
-            if (data.purpose === "Laboratory Work") badgeClass = "lab";
-            if (data.purpose === "Class") badgeClass = "class";
-
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td style="font-weight: 500;">${data.name}</td>
-                <td style="color: #666; font-size: 14px;">${data.email}</td>
-                <td style="font-weight: 500;">${timeString}</td>
-                <td><span class="badge ${badgeClass}">${data.purpose}</span></td>
-                <td><button class="btn-override" data-id="${sessionId}">Force Check-Out</button></td>
-            `;
-            rosterBody.appendChild(tr);
-        });
-
-        document.querySelectorAll('.btn-override').forEach(btn => {
-            btn.addEventListener('click', forceCheckout);
-        });
+        // Construct Row
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${data.name}</strong></td>
+            <td>${data.email}</td>
+            <td>${timeString}</td>
+            <td><span class="badge">${data.purpose}</span></td>
+            <td>
+                <button class="btn-override" data-id="${sessionId}">Force Check-Out</button>
+            </td>
+        `;
+        rosterBody.appendChild(tr);
     });
-}
 
-// --- MANUAL OVERRIDE LOGIC ---
-async function forceCheckout(e) {
+    // Attach event listeners to newly created override buttons
+    document.querySelectorAll('.btn-override').forEach(button => {
+        button.addEventListener('click', handleManualOverride);
+    });
+});
+
+// 3. MANUAL OVERRIDE CHECK-OUT
+async function handleManualOverride(e) {
     const sessionId = e.target.getAttribute('data-id');
-    const confirmAction = confirm("Are you sure you want to force check-out this student?");
+    const confirmAction = confirm("Are you sure you want to manually check out this student?");
     
     if (confirmAction) {
         try {
             const sessionRef = doc(db, "sessions", sessionId);
             await updateDoc(sessionRef, {
-                timeOut: serverTimestamp(),
                 status: "Checked Out",
-                override: true 
+                checkOutTime: serverTimestamp(),
+                overrideByAdmin: true // Audit trail for forced checkouts
             });
         } catch (error) {
-            console.error("Error forcing check-out: ", error);
-            alert("Failed to check out student. Check permissions.");
+            console.error("Error during manual override:", error);
+            alert("Failed to check out student. Please try again.");
         }
     }
 }
+
+// Handle Logout
+logoutBtn.addEventListener('click', () => {
+    signOut(auth);
+});
