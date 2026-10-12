@@ -31,11 +31,18 @@ const notifBanner = document.getElementById('notifBanner');
 const statusBadge = document.getElementById('statusBadge');
 const statusText = document.getElementById('statusText');
 
+// Stat Cards DOM Elements
+const statClass = document.getElementById('statClass');
+const statLab = document.getElementById('statLab');
+const statReview = document.getElementById('statReview');
+const statTotal = document.getElementById('statTotal');
+
 // Modal Elements
 const purposeModal = document.getElementById('purposeModal');
 const openPurposeModalBtn = document.getElementById('openPurposeModalBtn');
 const closeModalBtn = document.getElementById('closeModalBtn');
-const purposeBtns = document.querySelectorAll('.btn-purpose');
+const confirmCheckInBtn = document.getElementById('confirmCheckInBtn');
+const optionCards = document.querySelectorAll('.option-card');
 
 let activeSessionId = null;
 let currentUserData = null;
@@ -56,6 +63,49 @@ purposeModal.addEventListener('click', (e) => {
     }
 });
 
+// Handle radio selection highlight
+optionCards.forEach(card => {
+    card.addEventListener('click', () => {
+        optionCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+    });
+});
+
+// Fetch and calculate live statistics for the 4 stat cards
+async function loadLabStats() {
+    try {
+        const sessionsRef = collection(db, "sessions");
+        const q = query(sessionsRef, where("status", "==", "Inside"));
+        const querySnapshot = await getDocs(q);
+
+        let classCount = 0;
+        let labCount = 0;
+        let reviewCount = 0;
+
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.purpose === "Class Session" || data.purpose === "Class") {
+                classCount++;
+            } else if (data.purpose === "Laboratory Work") {
+                labCount++;
+            } else if (data.purpose === "Review / Rest") {
+                reviewCount++;
+            }
+        });
+
+        const total = querySnapshot.size;
+
+        if (statClass) statClass.textContent = classCount;
+        if (statLab) statLab.textContent = labCount;
+        if (statReview) statReview.textContent = reviewCount;
+        if (statTotal) statTotal.textContent = `${total} / 24`;
+    } catch (err) {
+        console.error("Error loading lab stats:", err);
+    }
+}
+
 // Authentication State Listener
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -68,7 +118,8 @@ onAuthStateChanged(auth, async (user) => {
         const initials = displayName.substring(0, 2).toUpperCase();
         userAvatar.textContent = initials;
 
-        checkCurrentStatus(user.uid);
+        await checkCurrentStatus(user.uid);
+        await loadLabStats();
     } else {
         window.location.href = 'login.html';
     }
@@ -99,40 +150,44 @@ async function checkCurrentStatus(uid) {
     }
 }
 
-// Handle Check-In via Modal Buttons
-purposeBtns.forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-        const purpose = e.currentTarget.getAttribute('data-purpose');
-        try {
-            const sessionData = {
-                uid: currentUserData.uid,
-                email: currentUserData.email,
-                name: currentUserData.displayName || currentUserData.email,
-                purpose: purpose,
-                status: "Inside",
-                checkInTime: serverTimestamp()
-            };
-            
-            const docRef = await addDoc(collection(db, "sessions"), sessionData);
-            activeSessionId = docRef.id;
-            
-            showNotification("Checked In Successfully", "notif-green");
-            
-            // Close Modal & Switch UI
-            purposeModal.classList.add('hidden');
-            currentPurpose.textContent = purpose;
-            
-            statusBadge.classList.add('inside');
-            statusText.textContent = "CHECKED IN";
-            
-            checkInView.classList.add('hidden');
-            checkOutView.classList.remove('hidden');
-            
-        } catch (error) {
-            console.error("Check-in error:", error);
-            alert("Error checking in. Please check your connection.");
-        }
-    });
+// Handle Check-In via Confirm Button
+confirmCheckInBtn.addEventListener('click', async () => {
+    const selectedRadio = document.querySelector('input[name="labPurpose"]:checked');
+    if (!selectedRadio) return;
+    const purpose = selectedRadio.value;
+
+    try {
+        const sessionData = {
+            uid: currentUserData.uid,
+            email: currentUserData.email,
+            name: currentUserData.displayName || currentUserData.email,
+            purpose: purpose,
+            status: "Inside",
+            checkInTime: serverTimestamp()
+        };
+        
+        const docRef = await addDoc(collection(db, "sessions"), sessionData);
+        activeSessionId = docRef.id;
+        
+        showNotification("Checked In Successfully", "notif-green");
+        
+        // Close Modal & Switch UI
+        purposeModal.classList.add('hidden');
+        currentPurpose.textContent = purpose;
+        
+        statusBadge.classList.add('inside');
+        statusText.textContent = "CHECKED IN";
+        
+        checkInView.classList.add('hidden');
+        checkOutView.classList.remove('hidden');
+
+        // Refresh numbers across cards
+        await loadLabStats();
+        
+    } catch (error) {
+        console.error("Check-in error:", error);
+        alert("Error checking in. Please check your connection.");
+    }
 });
 
 // Handle Check-Out
@@ -155,6 +210,9 @@ checkOutBtn.addEventListener('click', async () => {
         
         checkOutView.classList.add('hidden');
         checkInView.classList.remove('hidden');
+
+        // Refresh numbers across cards
+        await loadLabStats();
         
     } catch (error) {
         console.error("Check-out error:", error);
