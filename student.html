@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EE Laboratory | Digital Logbook</title>
     <style>
-        /* Schedule Modal Styles */
+
 /* Refined Schedule Modal Styles */
 .day-pill {
     padding: 8px 18px;
@@ -53,16 +53,17 @@
 }
 
 .schedule-row.ongoing {
-    background: #f0fdf4;
-    border-color: #d1fae5;
-    border-left-color: #10b981;
+    background: #f0fdf4 !important;
+    border: 1.5px solid #86efac !important;
+    border-left: 6px solid #10b981 !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.18) !important;
 }
 
 .col-time {
     font-size: 13.5px;
     color: #64748b;
     font-weight: 600;
-    line-height: 1.5;
+    white-space: nowrap;
 }
 
 .col-course {
@@ -76,7 +77,10 @@
 }
 
 .ongoing-badge {
-    font-size: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
     font-weight: 800;
     background-color: #10b981;
     color: white;
@@ -84,7 +88,22 @@
     border-radius: 12px;
     margin-top: 6px;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+
+.pulse-dot {
+    width: 6px;
+    height: 6px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    display: inline-block;
+    animation: ongoingPulse 1.4s infinite ease-in-out;
+}
+
+@keyframes ongoingPulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.4); }
+    100% { opacity: 1; transform: scale(1); }
 }
 
 .empty-state {
