@@ -43,7 +43,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 12px;
+            padding: 8px 12px;
         }
 
         .app-wrapper {
@@ -51,7 +51,7 @@
             max-width: 420px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         /* Header & Brand Section */
@@ -64,8 +64,9 @@
         }
 
         .brand-logo-img {
-            max-width: 220px;
-            max-height: 75px;
+            width: 100%;
+            max-width: 340px;
+            max-height: 115px;
             height: auto;
             display: block;
             object-fit: contain;
@@ -75,24 +76,25 @@
         .portal-badge {
             background-color: var(--badge-bg);
             color: var(--badge-text);
-            font-size: 10.5px;
+            font-size: 12px; /* Increased from 10px */
             font-weight: 700;
             letter-spacing: 0.3px;
-            padding: 3px 12px;
+            padding: 4px 14px;
             border-radius: 12px;
             display: inline-block;
         }
 
         .portal-title {
-            font-size: 21px;
+            font-size: 24px; /* Increased from 20px */
             font-weight: 800;
             color: #0f172a;
             letter-spacing: -0.4px;
-            line-height: 1.1;
+            line-height: 1.15;
+            margin-top: 1px;
         }
 
         .portal-subtitle {
-            font-size: 11px;
+            font-size: 12px; /* Increased from 10.5px */
             color: var(--text-sub);
         }
 
@@ -110,7 +112,7 @@
             border: 1px solid #a7f3d0;
             color: var(--open-text);
             text-align: center;
-            padding: 7px 8px;
+            padding: 6px 8px;
             border-radius: var(--border-radius);
             font-size: 11px;
             font-weight: 700;
@@ -126,8 +128,8 @@
         }
 
         .status-dot {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             background-color: #10b981;
             border-radius: 50%;
             display: inline-block;
@@ -139,7 +141,7 @@
             background-color: #e0e7ff;
             color: #4338ca;
             border: none;
-            padding: 7px 11px;
+            padding: 6px 11px;
             border-radius: var(--border-radius);
             font-weight: 700;
             font-size: 11px;
@@ -162,7 +164,7 @@
 
         .stat-card {
             background: var(--card-bg);
-            padding: 8px 6px;
+            padding: 7px 6px;
             border-radius: var(--border-radius);
             text-align: center;
             border: 1px solid #f1f5f9;
@@ -175,7 +177,7 @@
         }
 
         .stat-title {
-            font-size: 11px;
+            font-size: 10.5px;
             color: var(--text-sub);
             font-weight: 600;
             display: flex;
@@ -184,7 +186,7 @@
         }
 
         .stat-value {
-            font-size: 17px;
+            font-size: 16.5px;
             font-weight: 800;
             color: var(--text-main);
         }
@@ -192,7 +194,7 @@
         /* User Card */
         .user-card {
             background: var(--card-bg);
-            padding: 8px 12px;
+            padding: 7px 12px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             display: flex;
@@ -210,13 +212,13 @@
         }
 
         .avatar {
-            width: 34px;
-            height: 34px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background: linear-gradient(135deg, #a855f7, #ec4899);
             color: white;
             font-weight: 800;
-            font-size: 13px;
+            font-size: 12.5px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -228,7 +230,7 @@
         }
 
         .user-details h4 {
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 700;
             white-space: nowrap;
             overflow: hidden;
@@ -236,7 +238,7 @@
         }
 
         .user-details p {
-            font-size: 10.5px;
+            font-size: 10px;
             color: var(--text-sub);
             white-space: nowrap;
             overflow: hidden;
@@ -252,9 +254,9 @@
 
         .btn-sm-logout {
             border: none;
-            padding: 5px 10px;
+            padding: 4px 10px;
             border-radius: 8px;
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
@@ -270,7 +272,7 @@
         /* Main Action Card */
         .main-card {
             background: var(--card-bg);
-            padding: 12px 12px;
+            padding: 10px 12px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             text-align: center;
@@ -278,11 +280,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
 
         .section-label {
-            font-size: 9.5px;
+            font-size: 9px;
             letter-spacing: 0.8px;
             font-weight: 800;
             color: #94a3b8;
@@ -293,11 +295,11 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            padding: 4px 12px;
+            padding: 3px 10px;
             border-radius: 14px;
             background-color: #f1f5f9;
             color: #475569;
-            font-size: 11.5px;
+            font-size: 11px;
             font-weight: 700;
         }
 
@@ -318,17 +320,17 @@
         }
 
         .action-subtext {
-            font-size: 11px;
+            font-size: 10.5px;
             color: var(--text-sub);
         }
 
         .btn-primary-action, .btn-checkout-action {
             width: 100%;
-            padding: 12px;
+            padding: 11px;
             border-radius: 10px;
             border: none;
             color: white;
-            font-size: 13.5px;
+            font-size: 13px;
             font-weight: 800;
             letter-spacing: 0.3px;
             cursor: pointer;
