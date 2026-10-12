@@ -1,6 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc, serverTimestamp, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc, serverTimestamp, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
@@ -54,7 +54,7 @@ let allSessionDocs = []; // Store docs globally for filtering
 
 // Add listeners to re-render when filters change
 [searchInput, filterCourse, filterYear, filterStatus, filterPurpose, filterDate].forEach(el => {
-    el.addEventListener('input', renderTable);
+    if (el) el.addEventListener('input', renderTable);
 });
 
 onSnapshot(sessionsRef, (snapshot) => {
@@ -63,18 +63,19 @@ onSnapshot(sessionsRef, (snapshot) => {
 });
 
 function renderTable() {
+    if (!rosterBody) return;
     rosterBody.innerHTML = ''; 
     
     let activeClass = 0, activeLab = 0, activeReview = 0;
     let totalOccupants = 0, logsToday = 0;
     const todayStr = new Date().toISOString().split('T')[0];
 
-    const searchTerm = searchInput.value.toLowerCase();
-    const courseVal = filterCourse.value;
-    const yearVal = filterYear.value;
-    const statusVal = filterStatus.value;
-    const purposeVal = filterPurpose.value;
-    const dateVal = filterDate.value;
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const courseVal = filterCourse ? filterCourse.value : 'all';
+    const yearVal = filterYear ? filterYear.value : 'all';
+    const statusVal = filterStatus ? filterStatus.value : 'all';
+    const purposeVal = filterPurpose ? filterPurpose.value : 'all';
+    const dateVal = filterDate ? filterDate.value : '';
 
     let filteredDocs = allSessionDocs.sort((a, b) => (b.checkInTime?.toMillis() || 0) - (a.checkInTime?.toMillis() || 0));
 
@@ -83,7 +84,7 @@ function renderTable() {
         const isToday = (dateStr === todayStr);
         const isInside = data.status === "Inside";
 
-        // Dashboard Metrics (Calculated before filtering so top numbers are always accurate)
+        // Dashboard Metrics
         if (isToday) logsToday++;
         if (isInside) {
             totalOccupants++;
@@ -125,11 +126,11 @@ function renderTable() {
     });
 
     // Update Dashboard Metrics
-    mClass.textContent = activeClass;
-    mLab.textContent = activeLab;
-    mReview.textContent = activeReview;
-    mOccupants.textContent = totalOccupants;
-    mLogsToday.textContent = logsToday;
+    if (mClass) mClass.textContent = activeClass;
+    if (mLab) mLab.textContent = activeLab;
+    if (mReview) mReview.textContent = activeReview;
+    if (mOccupants) mOccupants.textContent = totalOccupants;
+    if (mLogsToday) mLogsToday.textContent = logsToday;
 
     document.querySelectorAll('.btn-override').forEach(button => {
         button.addEventListener('click', handleManualOverride);
@@ -137,9 +138,13 @@ function renderTable() {
 }
 
 async function fetchRegisteredCount() {
-    const usersRef = collection(db, "users");
-    const snapshot = await getDocs(usersRef);
-    mRegistered.textContent = snapshot.size;
+    try {
+        const usersRef = collection(db, "users");
+        const snapshot = await getDocs(usersRef);
+        if (mRegistered) mRegistered.textContent = snapshot.size;
+    } catch (e) {
+        console.error("Error fetching registered count:", e);
+    }
 }
 fetchRegisteredCount();
 
@@ -162,82 +167,88 @@ async function handleManualOverride(e) {
     }
 }
 
-saveHoursBtn.addEventListener('click', async () => {
-    const openTime = document.getElementById('openTime').value;
-    const closeTime = document.getElementById('closeTime').value;
-    
-    try {
-        const settingsRef = doc(db, "settings", "operatingHours");
-        await setDoc(settingsRef, {
-            open: openTime,
-            close: closeTime,
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-        alert("Operating hours saved successfully.");
-    } catch (error) {
-        console.error("Error saving hours:", error);
-        alert("Failed to save operating hours.");
-    }
-});
+if (saveHoursBtn) {
+    saveHoursBtn.addEventListener('click', async () => {
+        const openTime = document.getElementById('openTime').value;
+        const closeTime = document.getElementById('closeTime').value;
+        
+        try {
+            const settingsRef = doc(db, "settings", "operatingHours");
+            await setDoc(settingsRef, {
+                open: openTime,
+                close: closeTime,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+            alert("Operating hours saved successfully.");
+        } catch (error) {
+            console.error("Error saving hours:", error);
+            alert("Failed to save operating hours.");
+        }
+    });
+}
 
 const exportBtn = document.getElementById('exportBtn');
 
-exportBtn.addEventListener('click', async () => {
-    const snapshot = await getDocs(sessionsRef);
-    if (snapshot.empty) {
-        alert("No records to export.");
-        return;
-    }
+if (exportBtn) {
+    exportBtn.addEventListener('click', async () => {
+        const snapshot = await getDocs(sessionsRef);
+        if (snapshot.empty) {
+            alert("No records to export.");
+            return;
+        }
 
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Date,Student Name,Email,Course,Year Level,Purpose,Check In,Check Out,Status\n";
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Date,Student Name,Email,Course,Year Level,Purpose,Check In,Check Out,Status\n";
 
-    snapshot.docs.forEach(docSnap => {
-        const data = docSnap.data();
-        const dateStr = data.checkInTime ? data.checkInTime.toDate().toISOString().split('T')[0] : "—";
-        const checkInStr = data.checkInTime ? data.checkInTime.toDate().toLocaleTimeString() : "—";
-        const checkOutStr = data.checkOutTime ? data.checkOutTime.toDate().toLocaleTimeString() : "—";
-        
-        const row = [
-            dateStr,
-            `"${data.name || ''}"`,
-            data.email || '',
-            data.course || 'BS EE',
-            data.yearLevel || 'N/A',
-            data.purpose || '',
-            checkInStr,
-            checkOutStr,
-            data.status || ''
-        ];
-        csvContent += row.join(",") + "\n";
+        snapshot.docs.forEach(docSnap => {
+            const data = docSnap.data();
+            const dateStr = data.checkInTime ? data.checkInTime.toDate().toISOString().split('T')[0] : "—";
+            const checkInStr = data.checkInTime ? data.checkInTime.toDate().toLocaleTimeString() : "—";
+            const checkOutStr = data.checkOutTime ? data.checkOutTime.toDate().toLocaleTimeString() : "—";
+            
+            const row = [
+                dateStr,
+                `"${data.name || ''}"`,
+                data.email || '',
+                data.course || 'BS EE',
+                data.yearLevel || 'N/A',
+                data.purpose || '',
+                checkInStr,
+                checkOutStr,
+                data.status || ''
+            ];
+            csvContent += row.join(",") + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `ee_lab_logs_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `ee_lab_logs_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-});
+}
 
 const resetBtn = document.getElementById('resetBtn');
 
-resetBtn.addEventListener('click', async () => {
-    const confirmDelete = confirm("⚠️ WARNING: This will permanently delete ALL attendance logs. Are you sure you want to proceed?");
-    
-    if (confirmDelete) {
-        try {
-            const snapshot = await getDocs(sessionsRef);
-            const deletePromises = snapshot.docs.map(docSnap => deleteDoc(doc(db, "sessions", docSnap.id)));
-            await Promise.all(deletePromises);
-            alert("All logs have been successfully reset.");
-        } catch (error) {
-            console.error("Error resetting logs:", error);
-            alert("Failed to reset logs.");
+if (resetBtn) {
+    resetBtn.addEventListener('click', async () => {
+        const confirmDelete = confirm("⚠️ WARNING: This will permanently delete ALL attendance logs. Are you sure you want to proceed?");
+        
+        if (confirmDelete) {
+            try {
+                const snapshot = await getDocs(sessionsRef);
+                const deletePromises = snapshot.docs.map(docSnap => deleteDoc(doc(db, "sessions", docSnap.id)));
+                await Promise.all(deletePromises);
+                alert("All logs have been successfully reset.");
+            } catch (error) {
+                console.error("Error resetting logs:", error);
+                alert("Failed to reset logs.");
+            }
         }
-    }
-});
+    });
+}
 
 const lockBtn = document.getElementById('lockBtn');
 let isLocked = false;
@@ -247,40 +258,37 @@ const systemStatusRef = doc(db, "settings", "systemStatus");
 onSnapshot(systemStatusRef, (docSnap) => {
     if (docSnap.exists()) {
         isLocked = docSnap.data().isLocked;
-        lockBtn.innerHTML = isLocked ? "🔓 Unlock Check-Ins" : "🔒 Lock Check-Ins";
-        lockBtn.className = isLocked ? "btn btn-danger-outline" : "btn btn-warning";
+        if (lockBtn) {
+            lockBtn.innerHTML = isLocked ? "🔓 Unlock Check-Ins" : "🔒 Lock Check-Ins";
+            lockBtn.className = isLocked ? "btn btn-danger-outline" : "btn btn-warning";
+        }
     }
 });
 
-lockBtn.addEventListener('click', async () => {
-    try {
-        await setDoc(systemStatusRef, {
-            isLocked: !isLocked,
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-    } catch (error) {
-        console.error("Error toggling lock:", error);
-        alert("Failed to update lock status.");
-    }
-});
+if (lockBtn) {
+    lockBtn.addEventListener('click', async () => {
+        try {
+            await setDoc(systemStatusRef, {
+                isLocked: !isLocked,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+        } catch (error) {
+            console.error("Error toggling lock:", error);
+            alert("Failed to update lock status.");
+        }
+    });
+}
 
-// ---> PASTE STEP 6 CODE HERE <---
 const tabs = document.querySelectorAll('.tab');
-// Note: If you want the tabs to actually switch content, you will need to give IDs to the containers in admin.html 
-// e.g., id="logsView", id="directoryView", id="scheduleView" and uncomment the logic below.
-// const views = [document.querySelector('.table-container'), document.getElementById('directoryView'), document.getElementById('scheduleView')]; 
-
-tabs.forEach((tab, index) => {
+tabs.forEach((tab) => {
     tab.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        
-        // Example: toggle visibility of respective containers based on index
-        // views.forEach(v => { if(v) v.style.display = 'none'; });
-        // if(views[index]) views[index].style.display = 'block';
     });
 });
 
-logoutBtn.addEventListener('click', () => {
-    signOut(auth);
-});
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        signOut(auth);
+    });
+}

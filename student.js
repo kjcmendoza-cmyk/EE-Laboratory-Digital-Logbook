@@ -192,7 +192,6 @@ onAuthStateChanged(auth, (user) => {
             userAvatar.textContent = initials;
         }
 
-        // ✅ ONLY THIS ONE STAYS INSIDE
         listenToUserStatus(user.uid);
     } else {
         window.location.href = 'login.html';
@@ -202,7 +201,6 @@ onAuthStateChanged(auth, (user) => {
 // Check-In Action
 if (confirmCheckInBtn) {
     confirmCheckInBtn.addEventListener('click', async () => {
-        // Guard against clicking before auth resolves
         if (!currentUserData) {
             alert("User profile is still initializing. Please try again in a moment.");
             return;
@@ -213,6 +211,13 @@ if (confirmCheckInBtn) {
             if (purposeModal) purposeModal.classList.add('hidden');
             return;
         }
+
+        const selectedRadio = document.querySelector('input[name="labPurpose"]:checked');
+        if (!selectedRadio) {
+            alert("Please select a purpose.");
+            return;
+        }
+        const purpose = selectedRadio.value;
 
         try {
             const sessionData = {
