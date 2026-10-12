@@ -1,6 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-// Added onSnapshot to instantly listen for real-time changes
 import { getFirestore, collection, addDoc, updateDoc, doc, query, where, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -16,7 +15,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
 // DOM Elements
 const userInfo = document.getElementById('userInfo');
 const userName = document.getElementById('userName');
@@ -43,6 +41,7 @@ const confirmCheckInBtn = document.getElementById('confirmCheckInBtn');
 const optionCards = document.querySelectorAll('.option-card');
 
 let activeSessionId = null;
+let isSystemLocked = false;
 let currentUserData = null;
 
 // Modal Trigger Control
@@ -115,6 +114,26 @@ function listenToUserStatus(uid) {
     });
 }
 
+// REAL-TIME: Listen for admin lock status
+function listenToSystemLock() {
+    const systemStatusRef = doc(db, "settings", "systemStatus");
+    onSnapshot(systemStatusRef, (docSnap) => {
+        isSystemLocked = docSnap.exists() && docSnap.data().isLocked;
+        
+        if (isSystemLocked) {
+            openPurposeModalBtn.disabled = true;
+            openPurposeModalBtn.textContent = "🔒 CHECK-INS TEMPORARILY LOCKED";
+            openPurposeModalBtn.style.backgroundColor = "#94a3b8";
+            openPurposeModalBtn.style.cursor = "not-allowed";
+        } else {
+            openPurposeModalBtn.disabled = false;
+            openPurposeModalBtn.textContent = "CHECK IN TO LABORATORY";
+            openPurposeModalBtn.style.backgroundColor = "";
+            openPurposeModalBtn.style.cursor = "";
+        }
+    });
+}
+
 // Auth State
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -129,6 +148,7 @@ onAuthStateChanged(auth, (user) => {
         // Initialize real-time listeners
         listenToUserStatus(user.uid);
         listenToLabStats();
+        listenToSystemLock();
     } else {
         window.location.href = 'login.html';
     }
@@ -136,9 +156,13 @@ onAuthStateChanged(auth, (user) => {
 
 // Check-In Action
 confirmCheckInBtn.addEventListener('click', async () => {
+    if (isSystemLocked) {
+        alert("Check-ins are currently locked by the administrator.");
+        purposeModal.classList.add('hidden');
+        return;
+    }
+
     const selectedRadio = document.querySelector('input[name="labPurpose"]:checked');
-    if (!selectedRadio) return;
-    const purpose = selectedRadio.value;
 
     try {
         const sessionData = {
