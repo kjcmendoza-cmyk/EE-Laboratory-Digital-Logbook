@@ -137,6 +137,9 @@
         .tab:hover { color: var(--accent); }
         .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
 
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
         .filters {
             display: flex;
             gap: 15px;
@@ -167,7 +170,7 @@
             background: var(--card-bg);
             border-radius: 16px;
             box-shadow: var(--shadow-md);
-            overflow: hidden; /* Clips the table corners */
+            overflow: hidden; 
         }
         table {
             width: 100%;
@@ -229,6 +232,38 @@
             background: var(--accent);
             color: white;
         }
+
+        /* Schedule Form Styles */
+        .schedule-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .schedule-form input, .schedule-form select {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            background-color: #f8fafc;
+        }
     </style>
 </head>
 <body>
@@ -264,60 +299,109 @@
     </div>
 
     <div class="nav-tabs">
-        <div class="tab active">📋 Attendance Logs</div>
-        <div class="tab">🎓 Registered Students Directory</div>
-        <div class="tab">📅 Schedule Manager</div>
+        <div class="tab active" data-target="logs-view">📋 Attendance Logs</div>
+        <div class="tab" data-target="schedule-view">📅 Schedule Manager</div>
     </div>
 
-    <div class="filters">
-        <input type="text" class="search-bar" placeholder="Search by student name or email..." id="searchInput">
-        <select id="filterCourse">
-            <option value="all">All Courses/Programs</option>
-            <option value="BS EE">BS EE</option>
-            <option value="BS ECE">BS ECE</option>
-            <option value="BS CpE">BS CpE</option>
-        </select>
-        <select id="filterYear">
-            <option value="all">All Year Levels</option>
-            <option value="1st">1st Year</option>
-            <option value="2nd">2nd Year</option>
-            <option value="3rd">3rd Year</option>
-            <option value="4th">4th Year</option>
-        </select>
-        <select id="filterStatus">
-            <option value="all">All Statuses</option>
-            <option value="Inside">Inside</option>
-            <option value="Out">Out</option>
-        </select>
-        <select id="filterPurpose">
-            <option value="all">All Purposes</option>
-            <option value="Class">Class</option>
-            <option value="Laboratory Work">Laboratory Work</option>
-            <option value="Review/Rest">Review/Rest</option>
-        </select>
-        <input type="date" id="filterDate">
+    <!-- Attendance Logs View -->
+    <div id="logs-view" class="tab-content active">
+        <div class="filters">
+            <input type="text" class="search-bar" placeholder="Search by student name or email..." id="searchInput">
+            <select id="filterCourse">
+                <option value="all">All Courses/Programs</option>
+                <option value="BS EE">BS EE</option>
+                <option value="BS ECE">BS ECE</option>
+                <option value="BS CpE">BS CpE</option>
+            </select>
+            <select id="filterYear">
+                <option value="all">All Year Levels</option>
+                <option value="1st">1st Year</option>
+                <option value="2nd">2nd Year</option>
+                <option value="3rd">3rd Year</option>
+                <option value="4th">4th Year</option>
+            </select>
+            <select id="filterStatus">
+                <option value="all">All Statuses</option>
+                <option value="Inside">Inside</option>
+                <option value="Out">Out</option>
+            </select>
+            <select id="filterPurpose">
+                <option value="all">All Purposes</option>
+                <option value="Class">Class</option>
+                <option value="Laboratory Work">Laboratory Work</option>
+                <option value="Review/Rest">Review/Rest</option>
+            </select>
+            <input type="date" id="filterDate">
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Student Name</th>
+                        <th>AdDU Email</th>
+                        <th>Course/Program</th>
+                        <th>Year Level</th>
+                        <th>Purpose</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="rosterBody">
+                    <!-- Rows injected via JS -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Student Name</th>
-                    <th>AdDU Email</th>
-                    <th>Course/Program</th>
-                    <th>Year Level</th>
-                    <th>Purpose</th>
-                    <th>Check In</th>
-                    <th>Check Out</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="rosterBody">
-                <!-- Rows injected via JS -->
-            </tbody>
-        </table>
+    <!-- Schedule Manager View -->
+    <div id="schedule-view" class="tab-content">
+        <div class="schedule-form">
+            <div class="form-group">
+                <label>Day of Week</label>
+                <select id="scheduleDay">
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Subject / Class Name</label>
+                <input type="text" id="scheduleSubject" placeholder="e.g. EE 313 Circuit Theory" style="min-width: 250px;">
+            </div>
+            <div class="form-group">
+                <label>Start Time</label>
+                <input type="time" id="scheduleStart">
+            </div>
+            <div class="form-group">
+                <label>End Time</label>
+                <input type="time" id="scheduleEnd">
+            </div>
+            <button class="btn btn-primary" id="addScheduleBtn">Add Schedule</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Subject / Class</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody">
+                    <!-- Schedule Rows injected via JS -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script type="module" src="admin.js"></script>

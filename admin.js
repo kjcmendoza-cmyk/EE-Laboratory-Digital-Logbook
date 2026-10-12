@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc, serverTimestamp, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc, serverTimestamp, getDocs, deleteDoc, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
@@ -41,6 +41,7 @@ function getPurposeClass(purpose) {
 }
 
 const sessionsRef = collection(db, "sessions");
+const schedulesRef = collection(db, "schedules");
 
 // Filter Elements
 const searchInput = document.getElementById('searchInput');
@@ -50,9 +51,8 @@ const filterStatus = document.getElementById('filterStatus');
 const filterPurpose = document.getElementById('filterPurpose');
 const filterDate = document.getElementById('filterDate');
 
-let allSessionDocs = []; // Store docs globally for filtering
+let allSessionDocs = []; 
 
-// Add listeners to re-render when filters change
 [searchInput, filterCourse, filterYear, filterStatus, filterPurpose, filterDate].forEach(el => {
     if (el) el.addEventListener('input', renderTable);
 });
@@ -84,7 +84,6 @@ function renderTable() {
         const isToday = (dateStr === todayStr);
         const isInside = data.status === "Inside";
 
-        // Dashboard Metrics
         if (isToday) logsToday++;
         if (isInside) {
             totalOccupants++;
@@ -93,7 +92,6 @@ function renderTable() {
             if (data.purpose === 'Review/Rest') activeReview++;
         }
 
-        // Apply Filters
         if (searchTerm && !data.name?.toLowerCase().includes(searchTerm) && !data.email?.toLowerCase().includes(searchTerm)) return;
         if (courseVal !== 'all' && (data.course || 'BS EE') !== courseVal) return;
         if (yearVal !== 'all' && (data.yearLevel || 'N/A') !== yearVal) return;
@@ -101,7 +99,6 @@ function renderTable() {
         if (purposeVal !== 'all' && data.purpose !== purposeVal) return;
         if (dateVal && dateStr !== dateVal) return;
 
-        // Render Row
         let checkInStr = data.checkInTime ? data.checkInTime.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—";
         let checkOutStr = data.checkOutTime ? data.checkOutTime.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—";
         
@@ -125,7 +122,6 @@ function renderTable() {
         rosterBody.appendChild(tr);
     });
 
-    // Update Dashboard Metrics
     if (mClass) mClass.textContent = activeClass;
     if (mLab) mLab.textContent = activeLab;
     if (mReview) mReview.textContent = activeReview;
@@ -166,6 +162,111 @@ async function handleManualOverride(e) {
         }
     }
 }
+
+// ----------------------------------------------------
+// SCHEDULE MANAGER LOGIC
+// ----------------------------------------------------
+const scheduleDay = document.getElementById('scheduleDay');
+const scheduleSubject = document.getElementById('scheduleSubject');
+const scheduleStart = document.getElementById('scheduleStart');
+const scheduleEnd = document.getElementById('scheduleEnd');
+const addScheduleBtn = document.getElementById('addScheduleBtn');
+const scheduleBody = document.getElementById('scheduleBody');
+
+if (addScheduleBtn) {
+    addScheduleBtn.addEventListener('click', async () => {
+        const day = scheduleDay.value;
+        const subject = scheduleSubject.value.trim();
+        const start = scheduleStart.value;
+        const end = scheduleEnd.value;
+
+        if (!subject || !start || !end) {
+            alert("Please fill in all schedule fields.");
+            return;
+        }
+
+        try {
+            await addDoc(schedulesRef, {
+                day: day,
+                subject: subject,
+                startTime: start,
+                endTime: end,
+                createdAt: serverTimestamp()
+            });
+            scheduleSubject.value = '';
+            scheduleStart.value = '';
+            scheduleEnd.value = '';
+            alert("Schedule added successfully!");
+        } catch (error) {
+            console.error("Error adding schedule:", error);
+            alert("Failed to add schedule.");
+        }
+    });
+}
+
+// Listen for schedules real-time
+onSnapshot(query(schedulesRef, orderBy('day')), (snapshot) => {
+    if (!scheduleBody) return;
+    scheduleBody.innerHTML = '';
+    
+    const daysOrder = { "Monday": 1, "Tuesday": 2, "Wednesday": 3, "Thursday": 4, "Friday": 5, "Saturday": 6, "Sunday": 7 };
+    
+    let schedules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    schedules.sort((a, b) => {
+        if (daysOrder[a.day] !== daysOrder[b.day]) return daysOrder[a.day] - daysOrder[b.day];
+        return a.startTime.localeCompare(b.startTime);
+    });
+
+    schedules.forEach(sched => {
+        const formatTime = (timeStr) => {
+            const [h, m] = timeStr.split(':');
+            const date = new Date();
+            date.setHours(parseInt(h), parseInt(m));
+            return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        };
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${sched.day}</strong></td>
+            <td>${sched.subject}</td>
+            <td>${formatTime(sched.startTime)}</td>
+            <td>${formatTime(sched.endTime)}</td>
+            <td>
+                <button class="btn-edit btn-delete-sched" data-id="${sched.id}" style="color: #c53030; border-color: #feb2b2;">Delete</button>
+            </td>
+        `;
+        scheduleBody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.btn-delete-sched').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            if (confirm("Are you sure you want to delete this schedule?")) {
+                const id = e.target.getAttribute('data-id');
+                await deleteDoc(doc(db, "schedules", id));
+            }
+        });
+    });
+});
+
+// ----------------------------------------------------
+// TAB SWITCHING LOGIC
+// ----------------------------------------------------
+const tabs = document.querySelectorAll('.tab');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        
+        tab.classList.add('active');
+        const target = tab.getAttribute('data-target');
+        if (target) {
+            document.getElementById(target).classList.add('active');
+        }
+    });
+});
+
 
 if (saveHoursBtn) {
     saveHoursBtn.addEventListener('click', async () => {
@@ -253,7 +354,6 @@ if (resetBtn) {
 const lockBtn = document.getElementById('lockBtn');
 let isLocked = false;
 
-// Listen for lock status on load
 const systemStatusRef = doc(db, "settings", "systemStatus");
 onSnapshot(systemStatusRef, (docSnap) => {
     if (docSnap.exists()) {
@@ -278,14 +378,6 @@ if (lockBtn) {
         }
     });
 }
-
-const tabs = document.querySelectorAll('.tab');
-tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-    });
-});
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {

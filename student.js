@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, updateDoc, doc, query, where, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, updateDoc, doc, query, where, onSnapshot, serverTimestamp, limit, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
@@ -35,17 +35,23 @@ const statLab = document.getElementById('statLab');
 const statReview = document.getElementById('statReview');
 const statTotal = document.getElementById('statTotal');
 
+// Modals
 const purposeModal = document.getElementById('purposeModal');
 const openPurposeModalBtn = document.getElementById('openPurposeModalBtn');
 const closeModalBtn = document.getElementById('closeModalBtn');
 const confirmCheckInBtn = document.getElementById('confirmCheckInBtn');
 const optionCards = document.querySelectorAll('.option-card');
 
+const scheduleModal = document.getElementById('scheduleModal');
+const viewScheduleBtn = document.getElementById('viewScheduleBtn');
+const closeScheduleModalBtn = document.getElementById('closeScheduleModalBtn');
+const scheduleListContainer = document.getElementById('scheduleListContainer');
+
 let activeSessionId = null;
 let isSystemLocked = false;
 let currentUserData = null;
 
-// Modal Controls
+// Modal Controls - Check In
 if (openPurposeModalBtn) {
     openPurposeModalBtn.addEventListener('click', () => {
         if (isSystemLocked) {
@@ -78,6 +84,27 @@ optionCards.forEach(card => {
         if (radio) radio.checked = true;
     });
 });
+
+// Modal Controls - Schedule
+if (viewScheduleBtn) {
+    viewScheduleBtn.addEventListener('click', () => {
+        if (scheduleModal) scheduleModal.classList.remove('hidden');
+    });
+}
+
+if (closeScheduleModalBtn) {
+    closeScheduleModalBtn.addEventListener('click', () => {
+        if (scheduleModal) scheduleModal.classList.add('hidden');
+    });
+}
+
+if (scheduleModal) {
+    scheduleModal.addEventListener('click', (e) => {
+        if (e.target === scheduleModal) {
+            scheduleModal.classList.add('hidden');
+        }
+    });
+}
 
 // REAL-TIME: Listen to all lab stats for live dashboard updates
 function listenToLabStats() {
@@ -172,10 +199,60 @@ function listenToOperatingHours() {
     }, (err) => console.error("Operating hours listener error:", err));
 }
 
+// REAL-TIME: Listen to Schedules added by Admin
+function listenToSchedules() {
+    const schedulesRef = collection(db, "schedules");
+    onSnapshot(query(schedulesRef, orderBy('day')), (snapshot) => {
+        if (!scheduleListContainer) return;
+        scheduleListContainer.innerHTML = '';
+        
+        if (snapshot.empty) {
+            scheduleListContainer.innerHTML = '<p style="text-align:center; color:var(--text-sub); font-size:14px; padding: 20px 0;">No scheduled classes at the moment.</p>';
+            return;
+        }
+
+        const daysOrder = { "Monday": 1, "Tuesday": 2, "Wednesday": 3, "Thursday": 4, "Friday": 5, "Saturday": 6, "Sunday": 7 };
+        let schedules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        schedules.sort((a, b) => {
+            if (daysOrder[a.day] !== daysOrder[b.day]) return daysOrder[a.day] - daysOrder[b.day];
+            return a.startTime.localeCompare(b.startTime);
+        });
+
+        const formatTime = (timeStr) => {
+            const [h, m] = timeStr.split(':');
+            const date = new Date();
+            date.setHours(parseInt(h), parseInt(m));
+            return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        };
+
+        // Group by day for visual clarity
+        let currentDay = '';
+        schedules.forEach(sched => {
+            if (sched.day !== currentDay) {
+                currentDay = sched.day;
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'schedule-day-header';
+                dayHeader.textContent = currentDay;
+                scheduleListContainer.appendChild(dayHeader);
+            }
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'schedule-item';
+            itemDiv.innerHTML = `
+                <div class="schedule-subject">${sched.subject}</div>
+                <div class="schedule-time">🕒 ${formatTime(sched.startTime)} – ${formatTime(sched.endTime)}</div>
+            `;
+            scheduleListContainer.appendChild(itemDiv);
+        });
+    }, (err) => console.error("Schedules listener error:", err));
+}
+
 // Initialize global real-time listeners immediately on load
 listenToLabStats();
 listenToSystemLock();
 listenToOperatingHours();
+listenToSchedules();
 
 // Auth State Listener
 onAuthStateChanged(auth, (user) => {
