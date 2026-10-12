@@ -232,34 +232,22 @@
             flex-shrink: 0;
         }
 
-        .btn-sm-edit, .btn-sm-logout {
-            border: none;
-            padding: 6px 12px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-        }
-
-        .btn-sm-edit {
-            background-color: #f1f5f9;
-            color: #475569;
-        }
-
-        .btn-sm-edit:hover {
-            background-color: #e2e8f0;
-        }
-
         .btn-sm-logout {
-            background-color: #fef2f2;
-            color: var(--danger-red);
-        }
+    border: none;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    background-color: #fef2f2;
+    color: var(--danger-red);
+}
 
-        .btn-sm-logout:hover {
-            background-color: #fee2e2;
-        }
+.btn-sm-logout:hover {
+    background-color: #fee2e2;
+}
 
         /* Main Action Card */
         .main-card {
@@ -742,18 +730,17 @@
         </div>
 
         <div class="user-card">
-            <div class="user-profile">
-                <div class="avatar" id="userAvatar">--</div>
-                <div class="user-details">
-                    <h4 id="userName">Loading...</h4>
-                    <p id="userInfo">Logged in...</p>
-                </div>
-            </div>
-            <div class="user-actions">
-                <button class="btn-sm-edit">Edit</button>
-                <button class="btn-sm-logout" id="logoutBtn">Log Out</button>
-            </div>
+    <div class="user-profile">
+        <div class="avatar" id="userAvatar">--</div>
+        <div class="user-details">
+            <h4 id="userName">Loading...</h4>
+            <p id="userInfo">Logged in...</p>
         </div>
+    </div>
+    <div class="user-actions">
+        <button class="btn-sm-logout" id="logoutBtn">Log Out</button>
+    </div>
+</div>
 
         <div class="main-card">
             <div class="section-label">CURRENT LABORATORY STATUS</div>
