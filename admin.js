@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 
-// Integrated Firebase Configuration 
 const firebaseConfig = {
     apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
     authDomain: "ee-laboratory-digital-logbook.firebaseapp.com",
@@ -17,85 +16,151 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// DOM Elements
 const rosterBody = document.getElementById('rosterBody');
-const headcountDisplay = document.getElementById('headcount');
 const logoutBtn = document.getElementById('logoutBtn');
+const saveHoursBtn = document.getElementById('saveHoursBtn');
 
-// Security: Ensure only logged-in users see this
+const mClass = document.getElementById('metric-class');
+const mLab = document.getElementById('metric-lab');
+const mReview = document.getElementById('metric-review');
+const mOccupants = document.getElementById('metric-occupants');
+const mLogsToday = document.getElementById('metric-logs');
+const mRegistered = document.getElementById('metric-registered');
+
 onAuthStateChanged(auth, (user) => {
     if (!user) {
         window.location.href = 'login.html';
     }
 });
 
-// 1. REAL-TIME LIVE ROSTER (onSnapshot)
+function getPurposeClass(purpose) {
+    if (purpose === 'Class') return 'class';
+    if (purpose === 'Laboratory Work') return 'lab';
+    if (purpose === 'Review/Rest') return 'review';
+    return '';
+}
+
 const sessionsRef = collection(db, "sessions");
-const activeSessionsQuery = query(sessionsRef, where("status", "==", "Inside"));
 
-onSnapshot(activeSessionsQuery, (snapshot) => {
-    rosterBody.innerHTML = ''; // Clear table
+onSnapshot(sessionsRef, (snapshot) => {
+    rosterBody.innerHTML = ''; 
     
-    // 2. LIVE HEADCOUNT
-    headcountDisplay.textContent = snapshot.size;
+    let activeClass = 0, activeLab = 0, activeReview = 0;
+    let totalOccupants = 0;
+    let logsToday = 0;
+    
+    const todayStr = new Date().toISOString().split('T')[0];
 
-    if (snapshot.empty) {
-        rosterBody.innerHTML = `<tr><td colspan="5" class="empty-state">The laboratory is currently empty.</td></tr>`;
-        return;
-    }
+    // Sort to show active occupants first, or based on timestamp
+    const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    docs.sort((a, b) => (b.checkInTime?.toMillis() || 0) - (a.checkInTime?.toMillis() || 0));
 
-    snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        const sessionId = docSnap.id;
+    docs.forEach((data) => {
+        const sessionId = data.id;
         
-        // Format Timestamp (handles cases where serverTimestamp hasn't resolved locally yet)
-        let timeString = "Just now";
+        let checkInStr = "—";
+        let checkOutStr = "—";
+        let dateStr = "—";
+        
         if (data.checkInTime) {
-            const date = data.checkInTime.toDate();
-            timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const d = data.checkInTime.toDate();
+            checkInStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            dateStr = d.toISOString().split('T')[0];
+        }
+        if (data.checkOutTime) {
+            const d = data.checkOutTime.toDate();
+            checkOutStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        // Construct Row
+        const isToday = (dateStr === todayStr);
+        if (isToday) logsToday++;
+
+        const isInside = data.status === "Inside";
+        
+        if (isInside) {
+            totalOccupants++;
+            if (data.purpose === 'Class') activeClass++;
+            if (data.purpose === 'Laboratory Work') activeLab++;
+            if (data.purpose === 'Review/Rest') activeReview++;
+        }
+
+        const statusHTML = isInside 
+            ? `<span class="status in">IN LAB</span>` 
+            : `<span class="status out">OUT</span>`;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
+            <td>${dateStr}</td>
             <td><strong>${data.name}</strong></td>
             <td>${data.email}</td>
-            <td>${timeString}</td>
-            <td><span class="badge">${data.purpose}</span></td>
+            <td>${data.course || 'BS EE'}</td>
+            <td>${data.yearLevel || 'N/A'}</td>
+            <td><span class="badge ${getPurposeClass(data.purpose)}">${data.purpose}</span></td>
+            <td>${checkInStr}</td>
+            <td>${checkOutStr}</td>
+            <td>${statusHTML}</td>
             <td>
-                <button class="btn-override" data-id="${sessionId}">Force Check-Out</button>
+                ${isInside ? `<button class="btn-edit btn-override" data-id="${sessionId}">Checkout</button>` : `<button class="btn-edit">Edit</button>`}
             </td>
         `;
         rosterBody.appendChild(tr);
     });
 
-    // Attach event listeners to newly created override buttons
+    mClass.textContent = activeClass;
+    mLab.textContent = activeLab;
+    mReview.textContent = activeReview;
+    mOccupants.textContent = totalOccupants;
+    mLogsToday.textContent = logsToday;
+
     document.querySelectorAll('.btn-override').forEach(button => {
         button.addEventListener('click', handleManualOverride);
     });
 });
 
-// 3. MANUAL OVERRIDE CHECK-OUT
+async function fetchRegisteredCount() {
+    const usersRef = collection(db, "users");
+    const snapshot = await getDocs(usersRef);
+    mRegistered.textContent = snapshot.size;
+}
+fetchRegisteredCount();
+
 async function handleManualOverride(e) {
     const sessionId = e.target.getAttribute('data-id');
-    const confirmAction = confirm("Are you sure you want to manually check out this student?");
+    const confirmAction = confirm("Force checkout this student? Their app UI will instantly update.");
     
     if (confirmAction) {
         try {
             const sessionRef = doc(db, "sessions", sessionId);
             await updateDoc(sessionRef, {
-                status: "Checked Out",
+                status: "Out",
                 checkOutTime: serverTimestamp(),
-                overrideByAdmin: true // Audit trail for forced checkouts
+                overrideByAdmin: true 
             });
         } catch (error) {
             console.error("Error during manual override:", error);
-            alert("Failed to check out student. Please try again.");
+            alert("Failed to check out student.");
         }
     }
 }
 
-// Handle Logout
+saveHoursBtn.addEventListener('click', async () => {
+    const openTime = document.getElementById('openTime').value;
+    const closeTime = document.getElementById('closeTime').value;
+    
+    try {
+        const settingsRef = doc(db, "settings", "operatingHours");
+        await updateDoc(settingsRef, {
+            open: openTime,
+            close: closeTime,
+            updatedAt: serverTimestamp()
+        });
+        alert("Operating hours saved successfully.");
+    } catch (error) {
+        console.error("Error saving hours:", error);
+        alert("Failed to save operating hours. Make sure the document exists.");
+    }
+});
+
 logoutBtn.addEventListener('click', () => {
     signOut(auth);
 });

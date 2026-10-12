@@ -47,7 +47,6 @@
             gap: 16px;
         }
 
-        /* Top Graphic / Branding */
         .brand-section {
             text-align: center;
             margin-bottom: 4px;
@@ -85,7 +84,6 @@
             margin-top: 2px;
         }
 
-        /* Top Actions Bar */
         .top-bar {
             display: flex;
             justify-content: flex-end;
@@ -102,7 +100,6 @@
             cursor: pointer;
         }
 
-        /* Laboratory Schedule Banner */
         .schedule-banner {
             background-color: var(--open-bg);
             border: 1px solid #a7f3d0;
@@ -126,7 +123,6 @@
             display: inline-block;
         }
 
-        /* 4-Card Grid Stats Section */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -161,7 +157,6 @@
             color: var(--text-main);
         }
 
-        /* User Card */
         .user-card {
             background: var(--card-bg);
             padding: 16px;
@@ -230,7 +225,6 @@
             cursor: pointer;
         }
 
-        /* Status & Main Action Card */
         .main-card {
             background: var(--card-bg);
             padding: 24px 20px;
@@ -322,192 +316,189 @@
             background-color: var(--danger-red-hover);
         }
 
-        /* Radio Selection Modal Popup - Prominent & Large UI */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(15, 23, 42, 0.65);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    padding: 20px;
-}
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
 
-.modal-card {
-    background: #ffffff;
-    border-radius: 28px;
-    padding: 32px 26px 26px;
-    width: 100%;
-    max-width: 440px;
-    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
-    animation: modalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
+        .modal-card {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 32px 26px 26px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+            animation: modalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-@keyframes modalPop {
-    from { transform: scale(0.92) translateY(10px); opacity: 0; }
-    to { transform: scale(1) translateY(0); opacity: 1; }
-}
+        @keyframes modalPop {
+            from { transform: scale(0.92) translateY(10px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
 
-.modal-header-text h3 {
-    font-size: 22px;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: -0.4px;
-}
+        .modal-header-text h3 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.4px;
+        }
 
-.modal-header-text p {
-    font-size: 14px;
-    color: #64748b;
-    margin-top: 6px;
-    margin-bottom: 22px;
-}
+        .modal-header-text p {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 6px;
+            margin-bottom: 22px;
+        }
 
-.modal-options {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
+        .modal-options {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
 
-.option-card {
-    width: 100%;
-    padding: 20px 22px;
-    border: 2.5px solid #e2e8f0;
-    border-radius: 22px;
-    background: #f8fafc;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-    user-select: none;
-}
+        .option-card {
+            width: 100%;
+            padding: 20px 22px;
+            border: 2.5px solid #e2e8f0;
+            border-radius: 22px;
+            background: #f8fafc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
 
-.option-card:hover {
-    border-color: #a5b4fc;
-    background: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.12);
-}
+        .option-card:hover {
+            border-color: #a5b4fc;
+            background: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.12);
+        }
 
-.option-card.selected {
-    border-color: #6366f1;
-    background: #f5f3ff;
-    box-shadow: 0 12px 24px -6px rgba(99, 102, 241, 0.22);
-    transform: translateY(-1px);
-}
+        .option-card.selected {
+            border-color: #6366f1;
+            background: #f5f3ff;
+            box-shadow: 0 12px 24px -6px rgba(99, 102, 241, 0.22);
+            transform: translateY(-1px);
+        }
 
-.option-card input[type="radio"] {
-    display: none;
-}
+        .option-card input[type="radio"] {
+            display: none;
+        }
 
-.custom-radio {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    border: 2.5px solid #94a3b8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: all 0.2s ease;
-    background: #ffffff;
-}
+        .custom-radio {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 2.5px solid #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            background: #ffffff;
+        }
 
-.option-card:hover .custom-radio {
-    border-color: #818cf8;
-}
+        .option-card:hover .custom-radio {
+            border-color: #818cf8;
+        }
 
-.option-card.selected .custom-radio {
-    border-color: #6366f1;
-    background: #ffffff;
-}
+        .option-card.selected .custom-radio {
+            border-color: #6366f1;
+            background: #ffffff;
+        }
 
-.option-card.selected .custom-radio::after {
-    content: '';
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    background-color: #6366f1;
-}
+        .option-card.selected .custom-radio::after {
+            content: '';
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background-color: #6366f1;
+        }
 
-.option-icon {
-    font-size: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    flex-shrink: 0;
-}
+        .option-icon {
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
+        }
 
-.option-card.selected .option-icon {
-    background: #e0e7ff;
-}
+        .option-card.selected .option-icon {
+            background: #e0e7ff;
+        }
 
-.option-title {
-    font-size: 18px;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: -0.2px;
-}
+        .option-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.2px;
+        }
 
-.modal-actions {
-    display: flex;
-    gap: 14px;
-    margin-top: 28px;
-}
+        .modal-actions {
+            display: flex;
+            gap: 14px;
+            margin-top: 28px;
+        }
 
-.btn-cancel {
-    flex: 1;
-    padding: 16px;
-    border-radius: 18px;
-    border: none;
-    background-color: #f1f5f9;
-    color: #475569;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-}
+        .btn-cancel {
+            flex: 1;
+            padding: 16px;
+            border-radius: 18px;
+            border: none;
+            background-color: #f1f5f9;
+            color: #475569;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-.btn-cancel:hover {
-    background-color: #e2e8f0;
-    color: #0f172a;
-}
+        .btn-cancel:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
 
-.btn-confirm {
-    flex: 1.4;
-    padding: 16px;
-    border-radius: 18px;
-    border: none;
-    background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 8px 20px rgba(168, 85, 247, 0.35);
-}
+        .btn-confirm {
+            flex: 1.4;
+            padding: 16px;
+            border-radius: 18px;
+            border: none;
+            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 8px 20px rgba(168, 85, 247, 0.35);
+        }
 
-.btn-confirm:hover {
-    opacity: 0.95;
-    transform: translateY(-1px);
-    box-shadow: 0 10px 24px rgba(168, 85, 247, 0.45);
-}
+        .btn-confirm:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(168, 85, 247, 0.45);
+        }
 
-        /* Utility */
         .hidden { display: none !important; }
 
-        /* Notification Banner */
         .notification {
             position: fixed;
             top: 20px;
@@ -534,7 +525,6 @@
     <div class="notification" id="notifBanner">Status Updated</div>
 
     <div class="app-wrapper">
-        <!-- Branding Header -->
         <div class="brand-section">
             <img src="fusee-logo.png" alt="FUSEE Logo" class="brand-logo-img">
             <div class="portal-badge">⚡ EE LABORATORY PORTAL</div>
@@ -542,18 +532,15 @@
             <div class="portal-subtitle">Federation of United Students of Electrical Engineering</div>
         </div>
 
-        <!-- Class Schedule Button -->
         <div class="top-bar">
             <button class="btn-schedule">📊 Class Schedule</button>
         </div>
 
-        <!-- Status Banner -->
         <div class="schedule-banner">
             <span class="status-dot"></span>
             Laboratory is Currently Open (7:30 AM – 9:00 PM)
         </div>
 
-        <!-- Divided Lab Stats (4 Cards) -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-title">📚 Class</div>
@@ -573,7 +560,6 @@
             </div>
         </div>
 
-        <!-- User Profile Card -->
         <div class="user-card">
             <div class="user-profile">
                 <div class="avatar" id="userAvatar">--</div>
@@ -588,7 +574,6 @@
             </div>
         </div>
 
-        <!-- Main Check-In / Check-Out Container -->
         <div class="main-card">
             <div class="section-label">CURRENT LABORATORY STATUS</div>
             
@@ -601,14 +586,12 @@
                 Tap below when entering or leaving
             </div>
 
-            <!-- View: Outside -->
             <div id="checkInView" style="width: 100%;">
                 <button class="btn-primary-action" id="openPurposeModalBtn">
                     CHECK IN TO LABORATORY
                 </button>
             </div>
 
-            <!-- View: Inside -->
             <div id="checkOutView" class="hidden" style="width: 100%;">
                 <p style="font-size: 13px; color: var(--text-sub); margin-bottom: 10px;">
                     Checked in for: <strong id="currentPurpose" style="color: var(--text-main);">--</strong>
@@ -620,7 +603,7 @@
         </div>
     </div>
 
-    <!-- Purpose Selection Modal Popup -->
+    <!-- Purpose Selection Modal Popup (VALUES STANDARDIZED) -->
     <div id="purposeModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-header-text">
@@ -630,7 +613,7 @@
             
             <div class="modal-options">
                 <label class="option-card selected">
-                    <input type="radio" name="labPurpose" value="Class Session" checked>
+                    <input type="radio" name="labPurpose" value="Class" checked>
                     <span class="custom-radio"></span>
                     <span class="option-icon">📚</span>
                     <span class="option-title">Class Session</span>
@@ -644,7 +627,7 @@
                 </label>
 
                 <label class="option-card">
-                    <input type="radio" name="labPurpose" value="Review / Rest">
+                    <input type="radio" name="labPurpose" value="Review/Rest">
                     <span class="custom-radio"></span>
                     <span class="option-icon">☕</span>
                     <span class="option-title">Review / Rest</span>
@@ -658,7 +641,6 @@
         </div>
     </div>
 
-    <!-- External Script -->
     <script type="module" src="student.js"></script>
 </body>
 </html>

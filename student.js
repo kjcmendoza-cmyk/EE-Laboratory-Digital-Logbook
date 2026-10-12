@@ -1,8 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, updateDoc, doc, query, where, getDocs, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+// Added onSnapshot to instantly listen for real-time changes
+import { getFirestore, collection, addDoc, updateDoc, doc, query, where, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 
-// Integrated Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
     authDomain: "ee-laboratory-digital-logbook.firebaseapp.com",
@@ -31,13 +31,11 @@ const notifBanner = document.getElementById('notifBanner');
 const statusBadge = document.getElementById('statusBadge');
 const statusText = document.getElementById('statusText');
 
-// Stat Cards DOM Elements
 const statClass = document.getElementById('statClass');
 const statLab = document.getElementById('statLab');
 const statReview = document.getElementById('statReview');
 const statTotal = document.getElementById('statTotal');
 
-// Modal Elements
 const purposeModal = document.getElementById('purposeModal');
 const openPurposeModalBtn = document.getElementById('openPurposeModalBtn');
 const closeModalBtn = document.getElementById('closeModalBtn');
@@ -51,19 +49,14 @@ let currentUserData = null;
 openPurposeModalBtn.addEventListener('click', () => {
     purposeModal.classList.remove('hidden');
 });
-
 closeModalBtn.addEventListener('click', () => {
     purposeModal.classList.add('hidden');
 });
-
-// Close modal if clicking outside modal box
 purposeModal.addEventListener('click', (e) => {
     if (e.target === purposeModal) {
         purposeModal.classList.add('hidden');
     }
 });
-
-// Handle radio selection highlight
 optionCards.forEach(card => {
     card.addEventListener('click', () => {
         optionCards.forEach(c => c.classList.remove('selected'));
@@ -73,84 +66,75 @@ optionCards.forEach(card => {
     });
 });
 
-// Fetch and calculate live statistics for the 4 stat cards
-async function loadLabStats() {
-    try {
-        const sessionsRef = collection(db, "sessions");
-        const q = query(sessionsRef, where("status", "==", "Inside"));
-        const querySnapshot = await getDocs(q);
-
+// REAL-TIME: Listen to all lab stats for live dashboard updates
+function listenToLabStats() {
+    const sessionsRef = collection(db, "sessions");
+    const q = query(sessionsRef, where("status", "==", "Inside"));
+    
+    onSnapshot(q, (snapshot) => {
         let classCount = 0;
         let labCount = 0;
         let reviewCount = 0;
 
-        querySnapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.purpose === "Class Session" || data.purpose === "Class") {
-                classCount++;
-            } else if (data.purpose === "Laboratory Work") {
-                labCount++;
-            } else if (data.purpose === "Review / Rest") {
-                reviewCount++;
-            }
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.purpose === "Class") classCount++;
+            else if (data.purpose === "Laboratory Work") labCount++;
+            else if (data.purpose === "Review/Rest") reviewCount++;
         });
-
-        const total = querySnapshot.size;
 
         if (statClass) statClass.textContent = classCount;
         if (statLab) statLab.textContent = labCount;
         if (statReview) statReview.textContent = reviewCount;
-        if (statTotal) statTotal.textContent = `${total} / 24`;
-    } catch (err) {
-        console.error("Error loading lab stats:", err);
-    }
+        if (statTotal) statTotal.textContent = `${snapshot.size} / 24`;
+    });
 }
 
-// Authentication State Listener
-onAuthStateChanged(auth, async (user) => {
+// REAL-TIME: Listen to current user's session status (Updates UI instantly if Admin forces checkout)
+function listenToUserStatus(uid) {
+    const sessionsRef = collection(db, "sessions");
+    const q = query(sessionsRef, where("uid", "==", uid), where("status", "==", "Inside"), limit(1));
+    
+    onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+            const sessionDoc = snapshot.docs[0];
+            activeSessionId = sessionDoc.id;
+            currentPurpose.textContent = sessionDoc.data().purpose;
+            
+            statusBadge.classList.add('inside');
+            statusText.textContent = "CHECKED IN";
+            checkInView.classList.add('hidden');
+            checkOutView.classList.remove('hidden');
+        } else {
+            activeSessionId = null;
+            statusBadge.classList.remove('inside');
+            statusText.textContent = "CHECKED OUT";
+            checkOutView.classList.add('hidden');
+            checkInView.classList.remove('hidden');
+        }
+    });
+}
+
+// Auth State
+onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUserData = user;
         const displayName = user.displayName || user.email.split('@')[0];
         userName.textContent = `Hello, ${displayName}!`;
         userInfo.textContent = user.email;
 
-        // Generate Avatar Initials
         const initials = displayName.substring(0, 2).toUpperCase();
         userAvatar.textContent = initials;
 
-        await checkCurrentStatus(user.uid);
-        await loadLabStats();
+        // Initialize real-time listeners
+        listenToUserStatus(user.uid);
+        listenToLabStats();
     } else {
         window.location.href = 'login.html';
     }
 });
 
-// Smart UI: Check if student is inside
-async function checkCurrentStatus(uid) {
-    const sessionsRef = collection(db, "sessions");
-    const q = query(sessionsRef, where("uid", "==", uid), where("status", "==", "Inside"), limit(1));
-    
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-        // User is Inside
-        const sessionDoc = querySnapshot.docs[0];
-        activeSessionId = sessionDoc.id;
-        currentPurpose.textContent = sessionDoc.data().purpose;
-        
-        statusBadge.classList.add('inside');
-        statusText.textContent = "CHECKED IN";
-        checkInView.classList.add('hidden');
-        checkOutView.classList.remove('hidden');
-    } else {
-        // User is Outside
-        statusBadge.classList.remove('inside');
-        statusText.textContent = "CHECKED OUT";
-        checkOutView.classList.add('hidden');
-        checkInView.classList.remove('hidden');
-    }
-}
-
-// Handle Check-In via Confirm Button
+// Check-In Action
 confirmCheckInBtn.addEventListener('click', async () => {
     const selectedRadio = document.querySelector('input[name="labPurpose"]:checked');
     if (!selectedRadio) return;
@@ -162,27 +146,14 @@ confirmCheckInBtn.addEventListener('click', async () => {
             email: currentUserData.email,
             name: currentUserData.displayName || currentUserData.email,
             purpose: purpose,
-            status: "Inside",
+            status: "Inside", // Standardized String
             checkInTime: serverTimestamp()
         };
         
-        const docRef = await addDoc(collection(db, "sessions"), sessionData);
-        activeSessionId = docRef.id;
+        await addDoc(collection(db, "sessions"), sessionData);
         
         showNotification("Checked In Successfully", "notif-green");
-        
-        // Close Modal & Switch UI
         purposeModal.classList.add('hidden');
-        currentPurpose.textContent = purpose;
-        
-        statusBadge.classList.add('inside');
-        statusText.textContent = "CHECKED IN";
-        
-        checkInView.classList.add('hidden');
-        checkOutView.classList.remove('hidden');
-
-        // Refresh numbers across cards
-        await loadLabStats();
         
     } catch (error) {
         console.error("Check-in error:", error);
@@ -190,29 +161,18 @@ confirmCheckInBtn.addEventListener('click', async () => {
     }
 });
 
-// Handle Check-Out
+// Check-Out Action
 checkOutBtn.addEventListener('click', async () => {
     if (!activeSessionId) return;
     
     try {
         const sessionRef = doc(db, "sessions", activeSessionId);
         await updateDoc(sessionRef, {
-            status: "Checked Out",
+            status: "Out", // Standardized String matching admin
             checkOutTime: serverTimestamp()
         });
         
-        activeSessionId = null;
         showNotification("Checked Out Successfully", "notif-red");
-        
-        // Switch UI Context
-        statusBadge.classList.remove('inside');
-        statusText.textContent = "CHECKED OUT";
-        
-        checkOutView.classList.add('hidden');
-        checkInView.classList.remove('hidden');
-
-        // Refresh numbers across cards
-        await loadLabStats();
         
     } catch (error) {
         console.error("Check-out error:", error);
@@ -220,7 +180,6 @@ checkOutBtn.addEventListener('click', async () => {
     }
 });
 
-// Flash notification helper
 function showNotification(msg, colorClass) {
     notifBanner.textContent = msg;
     notifBanner.className = `notification ${colorClass} show-notif`;
@@ -229,7 +188,6 @@ function showNotification(msg, colorClass) {
     }, 2500);
 }
 
-// Handle Logout
 logoutBtn.addEventListener('click', () => {
     signOut(auth);
 });

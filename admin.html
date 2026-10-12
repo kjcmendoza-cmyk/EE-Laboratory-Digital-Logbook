@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADDU Lab | Admin Dashboard</title>
+    <title>EE Lab Logbook Admin</title>
     <style>
         :root {
-            --primary: #003366; 
-            --bg: #f4f7f6;
-            --text: #333;
-            --danger: #dc3545;
-            --warning: #ffc107;
+            --primary: #4a5568; 
+            --accent: #5a67d8;
+            --bg: #f7fafc;
+            --text: #2d3748;
+            --danger: #fc8181;
+            --warning: #f6e05e;
+            --success: #68d391;
+            --border: #e2e8f0;
         }
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -19,84 +22,212 @@
             padding: 20px;
             color: var(--text);
         }
-        .header {
+        .admin-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: white;
-            padding: 20px 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .logo-area h1 { margin: 0; font-size: 20px; color: var(--text); }
+        .logo-area p { margin: 0; font-size: 12px; color: #718096; }
+        
+        .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .time-settings {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .time-settings input { border: 1px solid var(--border); border-radius: 4px; padding: 4px; }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-warning { background: var(--warning); color: #744210; }
+        .btn-danger-outline { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+        .btn-logout { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; padding: 8px 20px; }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
             margin-bottom: 20px;
         }
-        .header h1 { margin: 0; color: var(--primary); }
-        .stats { font-size: 18px; font-weight: bold; background: #e9ecef; padding: 10px 20px; border-radius: 8px; }
-        
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .metric-card h3 { margin: 0 0 10px 0; font-size: 12px; color: #718096; text-transform: uppercase; }
+        .metric-card .value { font-size: 24px; font-weight: bold; color: var(--text); }
+
+        .nav-tabs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+        }
+        .tab {
+            font-weight: 600;
+            color: #718096;
+            cursor: pointer;
+            padding-bottom: 10px;
+            margin-bottom: -12px;
+        }
+        .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .filters input, .filters select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+        }
+        .search-bar { flex-grow: 1; }
+
         .table-container {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
+            font-size: 14px;
         }
-        th, td {
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
-        }
-        th {
-            background-color: var(--primary);
-            color: white;
-            font-weight: 600;
-        }
-        tr:hover { background-color: #f9f9f9; }
+        th, td { padding: 15px 20px; border-bottom: 1px solid var(--border); }
+        th { color: #718096; font-weight: 600; text-transform: uppercase; font-size: 12px; }
+        tr:hover { background-color: #f7fafc; }
         
         .badge {
-            padding: 5px 10px;
-            border-radius: 20px;
+            padding: 4px 10px;
+            border-radius: 12px;
             font-size: 12px;
             font-weight: bold;
-            background: #e1f5fe;
-            color: #0277bd;
         }
+        .badge.class { background: #eebf8e; color: #7b4200; }
+        .badge.lab { background: #b3d4ff; color: #003a8c; }
+        .badge.review { background: #d6bcfa; color: #44337a; }
         
-        .btn-override {
-            background-color: var(--warning);
-            color: #000;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 13px;
-            transition: background 0.2s;
-        }
-        .btn-override:hover { background-color: #e0a800; }
-        
-        .logout { color: var(--danger); cursor: pointer; font-weight: bold; text-decoration: none; }
-        .empty-state { text-align: center; padding: 40px; color: #888; font-style: italic; }
+        .status { font-weight: 600; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border); }
+        .status.in { color: var(--success); }
+        .status.out { color: #a0aec0; }
+        .status.in::before { content: ''; width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
+        .status.out::before { content: ''; width: 6px; height: 6px; background: #a0aec0; border-radius: 50%; }
+
+        .btn-edit { background: white; border: 1px solid var(--accent); color: var(--accent); padding: 4px 10px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>Lab In-Charge Dashboard</h1>
-        <div class="stats">Live Headcount: <span id="headcount">0</span></div>
-        <a class="logout" id="logoutBtn">Sign Out</a>
+    <div class="admin-header">
+        <div class="logo-area">
+            <div>
+                <h1>EE Lab Logbook Admin</h1>
+                <p>Real-time Attendance & Student Telemetry Monitor</p>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="time-settings">
+                <label>⏰ Operating Hours:</label>
+                <span>Open</span> <input type="time" id="openTime" value="07:30">
+                <span>Close</span> <input type="time" id="closeTime" value="21:00">
+                <button class="btn btn-primary" id="saveHoursBtn">Save Hours</button>
+            </div>
+            <button class="btn btn-warning" id="lockBtn">🔒 Lock Check-Ins</button>
+            <button class="btn btn-danger-outline" id="resetBtn">🗑️ Reset All Logs</button>
+            <button class="btn btn-primary" id="exportBtn">📥 Export to Excel</button>
+        </div>
+        <button class="btn btn-logout" id="logoutBtn">Logout</button>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card"><h3>Class</h3><div class="value" id="metric-class">0</div></div>
+        <div class="metric-card"><h3>Laboratory Work</h3><div class="value" id="metric-lab">0</div></div>
+        <div class="metric-card"><h3>Review/Rest</h3><div class="value" id="metric-review">0</div></div>
+        <div class="metric-card"><h3>Total Occupants</h3><div class="value" id="metric-occupants">0</div></div>
+        <div class="metric-card"><h3>Logs Today</h3><div class="value" id="metric-logs">0</div></div>
+        <div class="metric-card"><h3>Registered Students</h3><div class="value" id="metric-registered">0</div></div>
+    </div>
+
+    <div class="nav-tabs">
+        <div class="tab active">📋 Attendance Logs</div>
+        <div class="tab">🎓 Registered Students Directory</div>
+        <div class="tab">📅 Schedule Manager</div>
+    </div>
+
+    <div class="filters">
+        <input type="text" class="search-bar" placeholder="Search by student name or email..." id="searchInput">
+        <select id="filterCourse">
+            <option value="all">All Courses/Programs</option>
+            <option value="BS EE">BS EE</option>
+            <option value="BS ECE">BS ECE</option>
+            <option value="BS CpE">BS CpE</option>
+        </select>
+        <select id="filterYear">
+            <option value="all">All Year Levels</option>
+            <option value="1st">1st Year</option>
+            <option value="2nd">2nd Year</option>
+            <option value="3rd">3rd Year</option>
+            <option value="4th">4th Year</option>
+        </select>
+        <select id="filterStatus">
+            <option value="all">All Statuses</option>
+            <option value="Inside">Inside</option>
+            <option value="Out">Out</option>
+        </select>
+        <select id="filterPurpose">
+            <option value="all">All Purposes</option>
+            <option value="Class">Class</option>
+            <option value="Laboratory Work">Laboratory Work</option>
+            <option value="Review/Rest">Review/Rest</option>
+        </select>
+        <input type="date" id="filterDate">
     </div>
 
     <div class="table-container">
         <table>
             <thead>
                 <tr>
+                    <th>Date</th>
                     <th>Student Name</th>
-                    <th>Email</th>
-                    <th>Time Entered</th>
+                    <th>AdDU Email</th>
+                    <th>Course/Program</th>
+                    <th>Year Level</th>
                     <th>Purpose</th>
-                    <th>Action</th>
+                    <th>Check In</th>
+                    <th>Check Out</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="rosterBody">
@@ -105,7 +236,6 @@
         </table>
     </div>
 
-    <!-- External Script -->
     <script type="module" src="admin.js"></script>
 </body>
 </html>
