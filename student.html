@@ -65,8 +65,8 @@
 
         .brand-logo-img {
             width: 100%;
-            max-width: 340px;
-            max-height: 115px;
+            max-width: 300px;
+            max-height: 90px;
             height: auto;
             display: block;
             object-fit: contain;
@@ -76,7 +76,7 @@
         .portal-badge {
             background-color: var(--badge-bg);
             color: var(--badge-text);
-            font-size: 12px; /* Increased from 10px */
+            font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.3px;
             padding: 4px 14px;
@@ -85,7 +85,7 @@
         }
 
         .portal-title {
-            font-size: 24px; /* Increased from 20px */
+            font-size: 24px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: -0.4px;
@@ -94,11 +94,11 @@
         }
 
         .portal-subtitle {
-            font-size: 12px; /* Increased from 10.5px */
+            font-size: 12px;
             color: var(--text-sub);
         }
 
-        /* Combined Status & Action Row */
+        /* Combined Status & Action Row - Vertically Expanded */
         .status-action-row {
             display: flex;
             align-items: center;
@@ -112,9 +112,9 @@
             border: 1px solid #a7f3d0;
             color: var(--open-text);
             text-align: center;
-            padding: 6px 8px;
+            padding: 12px 8px; /* Expanded vertical height */
             border-radius: var(--border-radius);
-            font-size: 11px;
+            font-size: 11.5px;
             font-weight: 700;
             display: flex;
             align-items: center;
@@ -128,8 +128,8 @@
         }
 
         .status-dot {
-            width: 6px;
-            height: 6px;
+            width: 7px;
+            height: 7px;
             background-color: #10b981;
             border-radius: 50%;
             display: inline-block;
@@ -141,10 +141,10 @@
             background-color: #e0e7ff;
             color: #4338ca;
             border: none;
-            padding: 6px 11px;
+            padding: 12px 12px; /* Expanded vertical height */
             border-radius: var(--border-radius);
             font-weight: 700;
-            font-size: 11px;
+            font-size: 11.5px;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 2px 4px rgba(67, 56, 202, 0.08);
@@ -155,7 +155,7 @@
             background-color: #c7d2fe;
         }
 
-        /* Stats Grid */
+        /* Stats Grid - Vertically Expanded */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -164,7 +164,7 @@
 
         .stat-card {
             background: var(--card-bg);
-            padding: 7px 6px;
+            padding: 13px 8px; /* Expanded vertical height */
             border-radius: var(--border-radius);
             text-align: center;
             border: 1px solid #f1f5f9;
@@ -173,11 +173,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 2px;
+            gap: 4px;
         }
 
         .stat-title {
-            font-size: 10.5px;
+            font-size: 11.5px;
             color: var(--text-sub);
             font-weight: 600;
             display: flex;
@@ -186,7 +186,7 @@
         }
 
         .stat-value {
-            font-size: 16.5px;
+            font-size: 20px; /* Enlarged metric values */
             font-weight: 800;
             color: var(--text-main);
         }
@@ -194,7 +194,7 @@
         /* User Card */
         .user-card {
             background: var(--card-bg);
-            padding: 7px 12px;
+            padding: 8px 12px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             display: flex;
