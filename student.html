@@ -8,7 +8,7 @@
         :root {
             --bg-color: #eef2f9;
             --card-bg: #ffffff;
-            --text-main: #1e293b;
+            --text-main: #0f172a;
             --text-sub: #64748b;
             --accent-purple: #818cf8;
             --badge-bg: #e0e7ff;
@@ -320,15 +320,16 @@
             background-color: var(--danger-red-hover);
         }
 
-        /* Purpose Modal Popup (Matches Inspiration UI) */
+        /* Refined Purpose Modal Popup */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(4px);
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -338,40 +339,52 @@
 
         .modal-card {
             background: #ffffff;
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 28px 24px;
             width: 100%;
-            max-width: 380px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            animation: popUp 0.2s ease-out;
-            text-align: center;
+            max-width: 390px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.2);
+            animation: popUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes popUp {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+            from { transform: scale(0.92) translateY(8px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
         }
 
         .modal-header {
-            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
             position: relative;
         }
 
         .modal-header h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-main);
+            font-size: 17px;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: -0.2px;
         }
 
         .btn-close-modal {
-            position: absolute;
-            right: 0;
-            top: -4px;
-            background: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f1f5f9;
             border: none;
-            font-size: 22px;
-            color: var(--text-sub);
+            font-size: 18px;
+            color: #64748b;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-close-modal:hover {
+            background: #e2e8f0;
+            color: #0f172a;
         }
 
         .modal-body {
@@ -382,25 +395,49 @@
 
         .btn-purpose {
             width: 100%;
-            padding: 16px;
+            padding: 14px 18px;
             border: 1.5px solid #e2e8f0;
-            border-radius: 14px;
+            border-radius: 16px;
             background: #ffffff;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
-            color: var(--text-main);
+            color: #1e293b;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            text-align: left;
+        }
+
+        .purpose-icon-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: #f8fafc;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            font-size: 18px;
+            flex-shrink: 0;
+            transition: background 0.2s ease;
         }
 
         .btn-purpose:hover {
             border-color: #818cf8;
             background-color: #f8fafc;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.12);
+        }
+
+        .btn-purpose:hover .purpose-icon-box {
+            background: #e0e7ff;
+        }
+
+        .btn-purpose:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
         }
 
         /* Utility */
@@ -507,7 +544,7 @@
         </div>
     </div>
 
-    <!-- Purpose Selection Modal Popup (Appears when clicking Check-In) -->
+    <!-- Purpose Selection Modal Popup (Refined UI) -->
     <div id="purposeModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-header">
@@ -516,13 +553,16 @@
             </div>
             <div class="modal-body">
                 <button class="btn-purpose" data-purpose="Laboratory Work">
-                    🛠️ Laboratory Work
+                    <span class="purpose-icon-box">🛠️</span>
+                    <span>Laboratory Work</span>
                 </button>
                 <button class="btn-purpose" data-purpose="Class">
-                    📚 Class
+                    <span class="purpose-icon-box">📚</span>
+                    <span>Class</span>
                 </button>
                 <button class="btn-purpose" data-purpose="Review / Rest">
-                    ☕ Review / Rest
+                    <span class="purpose-icon-box">☕</span>
+                    <span>Review / Rest</span>
                 </button>
             </div>
         </div>
