@@ -46,6 +46,10 @@ let currentUserData = null;
 
 // Modal Trigger Control
 openPurposeModalBtn.addEventListener('click', () => {
+    if (isSystemLocked) {
+        alert("Check-ins are currently locked by the administrator.");
+        return;
+    }
     purposeModal.classList.remove('hidden');
 });
 closeModalBtn.addEventListener('click', () => {
@@ -66,27 +70,32 @@ optionCards.forEach(card => {
 });
 
 // REAL-TIME: Listen to all lab stats for live dashboard updates
-function listenToLabStats() {
-    const sessionsRef = collection(db, "sessions");
-    const q = query(sessionsRef, where("status", "==", "Inside"));
-    
-    onSnapshot(q, (snapshot) => {
-        let classCount = 0;
-        let labCount = 0;
-        let reviewCount = 0;
-
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            if (data.purpose === "Class") classCount++;
-            else if (data.purpose === "Laboratory Work") labCount++;
-            else if (data.purpose === "Review/Rest") reviewCount++;
-        });
-
-        if (statClass) statClass.textContent = classCount;
-        if (statLab) statLab.textContent = labCount;
-        if (statReview) statReview.textContent = reviewCount;
-        if (statTotal) statTotal.textContent = `${snapshot.size} / 24`;
-    });
+function listenToSystemLock() {
+    const systemStatusRef = doc(db, "settings", "systemStatus");
+    onSnapshot(
+        systemStatusRef,
+        (docSnap) => {
+            isSystemLocked = docSnap.exists() && docSnap.data().isLocked;
+            
+            if (isSystemLocked) {
+                openPurposeModalBtn.disabled = true;
+                openPurposeModalBtn.textContent = "🔒 CHECK-INS TEMPORARILY LOCKED";
+                openPurposeModalBtn.style.backgroundColor = "#94a3b8";
+                openPurposeModalBtn.style.cursor = "not-allowed";
+                
+                // Automatically close the modal if it's currently open
+                purposeModal.classList.add('hidden');
+            } else {
+                openPurposeModalBtn.disabled = false;
+                openPurposeModalBtn.textContent = "CHECK IN TO LABORATORY";
+                openPurposeModalBtn.style.backgroundColor = "";
+                openPurposeModalBtn.style.cursor = "";
+            }
+        },
+        (error) => {
+            console.error("Error reading system lock status (check Firestore Rules):", error);
+        }
+    );
 }
 
 // REAL-TIME: Listen to current user's session status (Updates UI instantly if Admin forces checkout)
@@ -134,22 +143,58 @@ function listenToSystemLock() {
     });
 }
 
-// REAL-TIME: Listen for operating hours updates
+// REAL-TIME: Listen for operating hours and update lab status banner dynamically
 function listenToOperatingHours() {
     const hoursRef = doc(db, "settings", "operatingHours");
     onSnapshot(hoursRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            if (data.open && data.close) {
-                const formatTime = (timeStr) => {
-                    const [h, m] = timeStr.split(':');
-                    const date = new Date();
-                    date.setHours(parseInt(h), parseInt(m));
-                    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                };
-                const operatingHoursText = document.getElementById('operatingHoursText');
-                if (operatingHoursText) {
-                    operatingHoursText.textContent = `${formatTime(data.open)} – ${formatTime(data.close)}`;
+        if (!docSnap.exists()) return;
+        
+        const data = docSnap.data();
+        if (data.open && data.close) {
+            const formatTime = (timeStr) => {
+                const [h, m] = timeStr.split(':');
+                const date = new Date();
+                date.setHours(parseInt(h), parseInt(m));
+                return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            };
+
+            // Update operating hours text range
+            const operatingHoursText = document.getElementById('operatingHoursText');
+            if (operatingHoursText) {
+                operatingHoursText.textContent = `${formatTime(data.open)} – ${formatTime(data.close)}`;
+            }
+
+            // Check if current time is within open/close window
+            const now = new Date();
+            const [openH, openM] = data.open.split(':').map(Number);
+            const [closeH, closeM] = data.close.split(':').map(Number);
+
+            const openTime = new Date();
+            openTime.setHours(openH, openM, 0, 0);
+
+            const closeTime = new Date();
+            closeTime.setHours(closeH, closeM, 0, 0);
+
+            const isOpen = now >= openTime && now <= closeTime;
+
+            // Update banner text, dot, and colors dynamically
+            const banner = document.getElementById('scheduleBanner');
+            const statusText = document.getElementById('scheduleStatusText');
+            const statusDot = document.getElementById('scheduleStatusDot');
+
+            if (banner && statusText && statusDot) {
+                if (isOpen) {
+                    statusText.textContent = "Laboratory is Currently Open";
+                    statusDot.style.backgroundColor = "#10b981";
+                    banner.style.backgroundColor = "#d1fae5";
+                    banner.style.borderColor = "#a7f3d0";
+                    banner.style.color = "#065f46";
+                } else {
+                    statusText.textContent = "Laboratory is Currently Closed";
+                    statusDot.style.backgroundColor = "#ef4444";
+                    banner.style.backgroundColor = "#fee2e2";
+                    banner.style.borderColor = "#fca5a5";
+                    banner.style.color = "#991b1b";
                 }
             }
         }
