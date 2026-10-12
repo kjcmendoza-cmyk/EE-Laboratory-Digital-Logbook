@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc, serverTimestamp, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
@@ -42,41 +42,49 @@ function getPurposeClass(purpose) {
 
 const sessionsRef = collection(db, "sessions");
 
+// Filter Elements
+const searchInput = document.getElementById('searchInput');
+const filterCourse = document.getElementById('filterCourse');
+const filterYear = document.getElementById('filterYear');
+const filterStatus = document.getElementById('filterStatus');
+const filterPurpose = document.getElementById('filterPurpose');
+const filterDate = document.getElementById('filterDate');
+
+let allSessionDocs = []; // Store docs globally for filtering
+
+// Add listeners to re-render when filters change
+[searchInput, filterCourse, filterYear, filterStatus, filterPurpose, filterDate].forEach(el => {
+    el.addEventListener('input', renderTable);
+});
+
 onSnapshot(sessionsRef, (snapshot) => {
+    allSessionDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderTable();
+});
+
+function renderTable() {
     rosterBody.innerHTML = ''; 
     
     let activeClass = 0, activeLab = 0, activeReview = 0;
-    let totalOccupants = 0;
-    let logsToday = 0;
-    
+    let totalOccupants = 0, logsToday = 0;
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // Sort to show active occupants first, or based on timestamp
-    const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    docs.sort((a, b) => (b.checkInTime?.toMillis() || 0) - (a.checkInTime?.toMillis() || 0));
+    const searchTerm = searchInput.value.toLowerCase();
+    const courseVal = filterCourse.value;
+    const yearVal = filterYear.value;
+    const statusVal = filterStatus.value;
+    const purposeVal = filterPurpose.value;
+    const dateVal = filterDate.value;
 
-    docs.forEach((data) => {
-        const sessionId = data.id;
-        
-        let checkInStr = "—";
-        let checkOutStr = "—";
-        let dateStr = "—";
-        
-        if (data.checkInTime) {
-            const d = data.checkInTime.toDate();
-            checkInStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            dateStr = d.toISOString().split('T')[0];
-        }
-        if (data.checkOutTime) {
-            const d = data.checkOutTime.toDate();
-            checkOutStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
+    let filteredDocs = allSessionDocs.sort((a, b) => (b.checkInTime?.toMillis() || 0) - (a.checkInTime?.toMillis() || 0));
 
+    filteredDocs.forEach((data) => {
+        let dateStr = data.checkInTime ? data.checkInTime.toDate().toISOString().split('T')[0] : "—";
         const isToday = (dateStr === todayStr);
-        if (isToday) logsToday++;
-
         const isInside = data.status === "Inside";
-        
+
+        // Dashboard Metrics (Calculated before filtering so top numbers are always accurate)
+        if (isToday) logsToday++;
         if (isInside) {
             totalOccupants++;
             if (data.purpose === 'Class') activeClass++;
@@ -84,9 +92,19 @@ onSnapshot(sessionsRef, (snapshot) => {
             if (data.purpose === 'Review/Rest') activeReview++;
         }
 
-        const statusHTML = isInside 
-            ? `<span class="status in">IN LAB</span>` 
-            : `<span class="status out">OUT</span>`;
+        // Apply Filters
+        if (searchTerm && !data.name?.toLowerCase().includes(searchTerm) && !data.email?.toLowerCase().includes(searchTerm)) return;
+        if (courseVal !== 'all' && (data.course || 'BS EE') !== courseVal) return;
+        if (yearVal !== 'all' && (data.yearLevel || 'N/A') !== yearVal) return;
+        if (statusVal !== 'all' && data.status !== statusVal) return;
+        if (purposeVal !== 'all' && data.purpose !== purposeVal) return;
+        if (dateVal && dateStr !== dateVal) return;
+
+        // Render Row
+        let checkInStr = data.checkInTime ? data.checkInTime.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—";
+        let checkOutStr = data.checkOutTime ? data.checkOutTime.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—";
+        
+        const statusHTML = isInside ? `<span class="status in">IN LAB</span>` : `<span class="status out">OUT</span>`;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -100,12 +118,13 @@ onSnapshot(sessionsRef, (snapshot) => {
             <td>${checkOutStr}</td>
             <td>${statusHTML}</td>
             <td>
-                ${isInside ? `<button class="btn-edit btn-override" data-id="${sessionId}">Checkout</button>` : `<button class="btn-edit">Edit</button>`}
+                ${isInside ? `<button class="btn-edit btn-override" data-id="${data.id}">Checkout</button>` : `<button class="btn-edit">Edit</button>`}
             </td>
         `;
         rosterBody.appendChild(tr);
     });
 
+    // Update Dashboard Metrics
     mClass.textContent = activeClass;
     mLab.textContent = activeLab;
     mReview.textContent = activeReview;
@@ -115,7 +134,7 @@ onSnapshot(sessionsRef, (snapshot) => {
     document.querySelectorAll('.btn-override').forEach(button => {
         button.addEventListener('click', handleManualOverride);
     });
-});
+}
 
 async function fetchRegisteredCount() {
     const usersRef = collection(db, "users");
@@ -159,6 +178,107 @@ saveHoursBtn.addEventListener('click', async () => {
         console.error("Error saving hours:", error);
         alert("Failed to save operating hours. Make sure the document exists.");
     }
+});
+
+const exportBtn = document.getElementById('exportBtn');
+
+exportBtn.addEventListener('click', async () => {
+    const snapshot = await getDocs(sessionsRef);
+    if (snapshot.empty) {
+        alert("No records to export.");
+        return;
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Date,Student Name,Email,Course,Year Level,Purpose,Check In,Check Out,Status\n";
+
+    snapshot.docs.forEach(docSnap => {
+        const data = docSnap.data();
+        const dateStr = data.checkInTime ? data.checkInTime.toDate().toISOString().split('T')[0] : "—";
+        const checkInStr = data.checkInTime ? data.checkInTime.toDate().toLocaleTimeString() : "—";
+        const checkOutStr = data.checkOutTime ? data.checkOutTime.toDate().toLocaleTimeString() : "—";
+        
+        const row = [
+            dateStr,
+            `"${data.name || ''}"`,
+            data.email || '',
+            data.course || 'BS EE',
+            data.yearLevel || 'N/A',
+            data.purpose || '',
+            checkInStr,
+            checkOutStr,
+            data.status || ''
+        ];
+        csvContent += row.join(",") + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `ee_lab_logs_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+const resetBtn = document.getElementById('resetBtn');
+
+resetBtn.addEventListener('click', async () => {
+    const confirmDelete = confirm("⚠️ WARNING: This will permanently delete ALL attendance logs. Are you sure you want to proceed?");
+    
+    if (confirmDelete) {
+        try {
+            const snapshot = await getDocs(sessionsRef);
+            const deletePromises = snapshot.docs.map(docSnap => deleteDoc(doc(db, "sessions", docSnap.id)));
+            await Promise.all(deletePromises);
+            alert("All logs have been successfully reset.");
+        } catch (error) {
+            console.error("Error resetting logs:", error);
+            alert("Failed to reset logs.");
+        }
+    }
+});
+
+const lockBtn = document.getElementById('lockBtn');
+let isLocked = false;
+
+// Listen for lock status on load
+const systemStatusRef = doc(db, "settings", "systemStatus");
+onSnapshot(systemStatusRef, (docSnap) => {
+    if (docSnap.exists()) {
+        isLocked = docSnap.data().isLocked;
+        lockBtn.innerHTML = isLocked ? "🔓 Unlock Check-Ins" : "🔒 Lock Check-Ins";
+        lockBtn.className = isLocked ? "btn btn-danger-outline" : "btn btn-warning";
+    }
+});
+
+lockBtn.addEventListener('click', async () => {
+    try {
+        await setDoc(systemStatusRef, {
+            isLocked: !isLocked,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+    } catch (error) {
+        console.error("Error toggling lock:", error);
+        alert("Failed to update lock status.");
+    }
+});
+
+// ---> PASTE STEP 6 CODE HERE <---
+const tabs = document.querySelectorAll('.tab');
+// Note: If you want the tabs to actually switch content, you will need to give IDs to the containers in admin.html 
+// e.g., id="logsView", id="directoryView", id="scheduleView" and uncomment the logic below.
+// const views = [document.querySelector('.table-container'), document.getElementById('directoryView'), document.getElementById('scheduleView')]; 
+
+tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Example: toggle visibility of respective containers based on index
+        // views.forEach(v => { if(v) v.style.display = 'none'; });
+        // if(views[index]) views[index].style.display = 'block';
+    });
 });
 
 logoutBtn.addEventListener('click', () => {
