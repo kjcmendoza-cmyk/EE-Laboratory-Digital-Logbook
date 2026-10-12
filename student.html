@@ -320,125 +320,170 @@
             background-color: var(--danger-red-hover);
         }
 
-        /* Refined Purpose Modal Popup */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 20px;
-        }
+        /* Premium Purpose Selection Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
 
-        .modal-card {
-            background: #ffffff;
-            border-radius: 24px;
-            padding: 28px 24px;
-            width: 100%;
-            max-width: 390px;
-            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.2);
-            animation: popUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+.modal-card {
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+    border: 1px solid #f1f5f9;
+    animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-        @keyframes popUp {
-            from { transform: scale(0.92) translateY(8px); opacity: 0; }
-            to { transform: scale(1) translateY(0); opacity: 1; }
-        }
+@keyframes modalPop {
+    from { transform: scale(0.92) translateY(10px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+}
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 22px;
-            position: relative;
-        }
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
 
-        .modal-header h3 {
-            font-size: 17px;
-            font-weight: 700;
-            color: #1e293b;
-            letter-spacing: -0.2px;
-        }
+.modal-header-text h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.3px;
+}
 
-        .btn-close-modal {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #f1f5f9;
-            border: none;
-            font-size: 18px;
-            color: #64748b;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
+.modal-header-text p {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 3px;
+}
 
-        .btn-close-modal:hover {
-            background: #e2e8f0;
-            color: #0f172a;
-        }
+.btn-close-modal {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    border: none;
+    font-size: 18px;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
 
-        .modal-body {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+.btn-close-modal:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
 
-        .btn-purpose {
-            width: 100%;
-            padding: 14px 18px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 16px;
-            background: #ffffff;
-            font-size: 15px;
-            font-weight: 700;
-            color: #1e293b;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-            text-align: left;
-        }
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
 
-        .purpose-icon-box {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            background: #f8fafc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-            transition: background 0.2s ease;
-        }
+.btn-purpose {
+    width: 100%;
+    padding: 16px;
+    border: 2px solid #f1f5f9;
+    border-radius: 20px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-align: left;
+}
 
-        .btn-purpose:hover {
-            border-color: #818cf8;
-            background-color: #f8fafc;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.12);
-        }
+.purpose-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
 
-        .btn-purpose:hover .purpose-icon-box {
-            background: #e0e7ff;
-        }
+.purpose-info {
+    display: flex;
+    flex-direction: column;
+}
 
-        .btn-purpose:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-        }
+.purpose-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.purpose-desc {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+/* 1. Laboratory Work Style (Indigo Theme) */
+.btn-purpose[data-purpose="Laboratory Work"] .purpose-icon {
+    background: #e0e7ff;
+}
+.btn-purpose[data-purpose="Laboratory Work"]:hover {
+    border-color: #6366f1;
+    background: #f5f3ff;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.18);
+}
+
+/* 2. Class Style (Emerald Theme) */
+.btn-purpose[data-purpose="Class"] .purpose-icon {
+    background: #d1fae5;
+}
+.btn-purpose[data-purpose="Class"]:hover {
+    border-color: #10b981;
+    background: #ecfdf5;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.18);
+}
+
+/* 3. Review / Rest Style (Amber Theme) */
+.btn-purpose[data-purpose="Review / Rest"] .purpose-icon {
+    background: #fef3c7;
+}
+.btn-purpose[data-purpose="Review / Rest"]:hover {
+    border-color: #f59e0b;
+    background: #fffbeb;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.18);
+}
+
+.btn-purpose:hover .purpose-icon {
+    transform: scale(1.08);
+}
+
+.btn-purpose:active {
+    transform: translateY(0);
+}
 
         /* Utility */
         .hidden { display: none !important; }
@@ -544,29 +589,43 @@
         </div>
     </div>
 
-    <!-- Purpose Selection Modal Popup (Refined UI) -->
-    <div id="purposeModal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3>Select your purpose of entry:</h3>
-                <button class="btn-close-modal" id="closeModalBtn">&times;</button>
+    <!-- Purpose Selection Modal Popup -->
+<div id="purposeModal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-header-text">
+                <h3>Select Entry Purpose</h3>
+                <p>Choose what you'll be doing in the lab</p>
             </div>
-            <div class="modal-body">
-                <button class="btn-purpose" data-purpose="Laboratory Work">
-                    <span class="purpose-icon-box">🛠️</span>
-                    <span>Laboratory Work</span>
-                </button>
-                <button class="btn-purpose" data-purpose="Class">
-                    <span class="purpose-icon-box">📚</span>
-                    <span>Class</span>
-                </button>
-                <button class="btn-purpose" data-purpose="Review / Rest">
-                    <span class="purpose-icon-box">☕</span>
-                    <span>Review / Rest</span>
-                </button>
-            </div>
+            <button class="btn-close-modal" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <button class="btn-purpose" data-purpose="Laboratory Work">
+                <div class="purpose-icon">🛠️</div>
+                <div class="purpose-info">
+                    <span class="purpose-title">Laboratory Work</span>
+                    <span class="purpose-desc">Experiments, circuit builds & projects</span>
+                </div>
+            </button>
+
+            <button class="btn-purpose" data-purpose="Class">
+                <div class="purpose-icon">📚</div>
+                <div class="purpose-info">
+                    <span class="purpose-title">Class</span>
+                    <span class="purpose-desc">Attending scheduled laboratory subjects</span>
+                </div>
+            </button>
+
+            <button class="btn-purpose" data-purpose="Review / Rest">
+                <div class="purpose-icon">☕</div>
+                <div class="purpose-info">
+                    <span class="purpose-title">Review / Rest</span>
+                    <span class="purpose-desc">Self-study, exams review or short breaks</span>
+                </div>
+            </button>
         </div>
     </div>
+</div>
 
     <!-- External Script -->
     <script type="module" src="student.js"></script>
