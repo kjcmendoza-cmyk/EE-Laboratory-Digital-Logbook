@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, updateDoc, doc, query, where, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, updateDoc, doc, getDoc, query, where, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
@@ -56,6 +56,7 @@ let selectedDay = getCurrentDayString();
 let activeSessionId = null;
 let isSystemLocked = false;
 let currentUserData = null;
+let userProfileData = null; // Stores yearLevel & program from Firestore
 
 // Cooldown Configuration (60 seconds = 1 minute)
 const COOLDOWN_SECONDS = 60;
@@ -379,11 +380,23 @@ function listenToOperatingHours() {
 }
 
 // Auth State Listener
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUserData = user;
+
+        // Fetch user profile from 'users' collection to retrieve yearLevel and program
+        try {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                userProfileData = userDocSnap.data();
+            }
+        } catch (error) {
+            console.error("Error loading user profile:", error);
+        }
+
         const fallbackName = user.email ? user.email.split('@')[0] : "Student";
-        const displayName = user.displayName || fallbackName;
+        const displayName = userProfileData?.name || user.displayName || fallbackName;
 
         if (userName) userName.textContent = `Hello, ${displayName}!`;
         if (userInfo) userInfo.textContent = user.email || "Logged In";
@@ -436,7 +449,9 @@ if (confirmCheckInBtn) {
             const sessionData = {
                 uid: currentUserData.uid,
                 email: currentUserData.email || "",
-                name: currentUserData.displayName || (currentUserData.email ? currentUserData.email.split('@')[0] : "Student"),
+                name: userProfileData?.name || currentUserData.displayName || (currentUserData.email ? currentUserData.email.split('@')[0] : "Student"),
+                course: userProfileData?.program || "BS EE",
+                yearLevel: userProfileData?.yearLevel || "N/A",
                 purpose: purpose,
                 status: "Inside",
                 checkInTime: serverTimestamp()
