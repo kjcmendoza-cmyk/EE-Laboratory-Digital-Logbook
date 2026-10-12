@@ -65,8 +65,8 @@
 
         .brand-logo-img {
             width: 100%;
-            max-width: 300px;
-            max-height: 90px;
+            max-width: 340px; /* Slightly larger logo width */
+            max-height: 105px; /* Slightly larger logo height */
             height: auto;
             display: block;
             object-fit: contain;
@@ -85,7 +85,7 @@
         }
 
         .portal-title {
-            font-size: 24px;
+            font-size: 23px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: -0.4px;
@@ -94,11 +94,11 @@
         }
 
         .portal-subtitle {
-            font-size: 12px;
+            font-size: 11.5px;
             color: var(--text-sub);
         }
 
-        /* Combined Status & Action Row - Vertically Expanded */
+        /* Combined Status & Action Row */
         .status-action-row {
             display: flex;
             align-items: center;
@@ -112,7 +112,7 @@
             border: 1px solid #a7f3d0;
             color: var(--open-text);
             text-align: center;
-            padding: 12px 8px; /* Expanded vertical height */
+            padding: 10px 8px;
             border-radius: var(--border-radius);
             font-size: 11.5px;
             font-weight: 700;
@@ -141,7 +141,7 @@
             background-color: #e0e7ff;
             color: #4338ca;
             border: none;
-            padding: 12px 12px; /* Expanded vertical height */
+            padding: 10px 12px;
             border-radius: var(--border-radius);
             font-weight: 700;
             font-size: 11.5px;
@@ -155,7 +155,7 @@
             background-color: #c7d2fe;
         }
 
-        /* Stats Grid - Vertically Expanded */
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -164,7 +164,7 @@
 
         .stat-card {
             background: var(--card-bg);
-            padding: 13px 8px; /* Expanded vertical height */
+            padding: 11px 8px;
             border-radius: var(--border-radius);
             text-align: center;
             border: 1px solid #f1f5f9;
@@ -173,7 +173,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 3px;
         }
 
         .stat-title {
@@ -186,7 +186,7 @@
         }
 
         .stat-value {
-            font-size: 20px; /* Enlarged metric values */
+            font-size: 19px;
             font-weight: 800;
             color: var(--text-main);
         }
@@ -194,7 +194,7 @@
         /* User Card */
         .user-card {
             background: var(--card-bg);
-            padding: 8px 12px;
+            padding: 9px 12px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             display: flex;
@@ -212,13 +212,13 @@
         }
 
         .avatar {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: linear-gradient(135deg, #a855f7, #ec4899);
             color: white;
             font-weight: 800;
-            font-size: 12.5px;
+            font-size: 13.5px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -230,7 +230,7 @@
         }
 
         .user-details h4 {
-            font-size: 12.5px;
+            font-size: 13.5px;
             font-weight: 700;
             white-space: nowrap;
             overflow: hidden;
@@ -238,7 +238,7 @@
         }
 
         .user-details p {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-sub);
             white-space: nowrap;
             overflow: hidden;
@@ -254,9 +254,9 @@
 
         .btn-sm-logout {
             border: none;
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 8px;
-            font-size: 10.5px;
+            font-size: 11.5px;
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
@@ -272,7 +272,7 @@
         /* Main Action Card */
         .main-card {
             background: var(--card-bg);
-            padding: 10px 12px;
+            padding: 12px 12px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             text-align: center;
@@ -280,11 +280,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
 
         .section-label {
-            font-size: 9px;
+            font-size: 10.5px;
             letter-spacing: 0.8px;
             font-weight: 800;
             color: #94a3b8;
@@ -294,13 +294,13 @@
         .status-pill {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 3px 10px;
-            border-radius: 14px;
+            gap: 6px;
+            padding: 5px 14px;
+            border-radius: 16px;
             background-color: #f1f5f9;
             color: #475569;
-            font-size: 11px;
-            font-weight: 700;
+            font-size: 13px;
+            font-weight: 800;
         }
 
         .status-pill.inside {
@@ -309,8 +309,8 @@
         }
 
         .pill-dot {
-            width: 6px;
-            height: 6px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background-color: #94a3b8;
         }
@@ -320,17 +320,17 @@
         }
 
         .action-subtext {
-            font-size: 10.5px;
+            font-size: 11.5px;
             color: var(--text-sub);
         }
 
         .btn-primary-action, .btn-checkout-action {
             width: 100%;
-            padding: 11px;
-            border-radius: 10px;
+            padding: 13px;
+            border-radius: 12px;
             border: none;
             color: white;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 800;
             letter-spacing: 0.3px;
             cursor: pointer;
@@ -773,7 +773,7 @@
             </div>
 
             <div id="checkOutView" class="hidden" style="width: 100%;">
-                <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px;">
+                <p style="font-size: 11.5px; color: var(--text-sub); margin-bottom: 4px;">
                     Checked in for: <strong id="currentPurpose" style="color: var(--text-main);">--</strong>
                 </p>
                 <button class="btn-checkout-action" id="checkOutBtn">
