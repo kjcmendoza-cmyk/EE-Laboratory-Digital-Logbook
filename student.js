@@ -144,16 +144,28 @@ function updateDayPillsUI() {
 
 // Check if a class is currently ongoing
 function checkIsOngoing(startTimeStr, endTimeStr, schedDay) {
-    if (schedDay !== getCurrentDayString()) return false;
+    const currentDay = getCurrentDayString();
+    // Match both full day ("Monday") and short day ("Mon")
+    if (schedDay !== currentDay && schedDay !== currentDay.substring(0, 3)) return false;
     
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     
-    const [startH, startM] = startTimeStr.split(':').map(Number);
-    const startTotal = startH * 60 + startM;
-    
-    const [endH, endM] = endTimeStr.split(':').map(Number);
-    const endTotal = endH * 60 + endM;
+    const parseMinutes = (timeStr) => {
+        if (!timeStr) return 0;
+        if (timeStr.includes('AM') || timeStr.includes('PM')) {
+            const [time, modifier] = timeStr.split(' ');
+            let [hours, minutes] = time.split(':').map(Number);
+            if (modifier === 'PM' && hours < 12) hours += 12;
+            if (modifier === 'AM' && hours === 12) hours = 0;
+            return hours * 60 + minutes;
+        }
+        const [h, m] = timeStr.split(':').map(Number);
+        return h * 60 + m;
+    };
+
+    const startTotal = parseMinutes(startTimeStr);
+    const endTotal = parseMinutes(endTimeStr);
     
     return currentMinutes >= startTotal && currentMinutes <= endTotal;
 }
@@ -163,7 +175,7 @@ function renderScheduleTable() {
     if (!scheduleListContainer) return;
     scheduleListContainer.innerHTML = '';
     
-    const daySchedules = allSchedules.filter(s => s.day === selectedDay);
+    const daySchedules = allSchedules.filter(s => s.day === selectedDay || s.day === selectedDay.substring(0, 3));
     daySchedules.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
     if (daySchedules.length === 0) {
@@ -184,13 +196,12 @@ function renderScheduleTable() {
         const row = document.createElement('div');
         row.className = `schedule-row ${isOngoing ? 'ongoing' : ''}`;
         
+        // Single-line time without <br> and animated ongoing badge
         row.innerHTML = `
-            <div class="col-time">
-                ${formatTime(sched.startTime)} -<br>${formatTime(sched.endTime)}
-            </div>
+            <div class="col-time">${formatTime(sched.startTime)} - ${formatTime(sched.endTime)}</div>
             <div class="col-course">
                 <span>${sched.subject}</span>
-                ${isOngoing ? '<span class="ongoing-badge">ONGOING</span>' : ''}
+                ${isOngoing ? '<span class="ongoing-badge"><span class="pulse-dot"></span> ONGOING</span>' : ''}
             </div>
         `;
         scheduleListContainer.appendChild(row);
