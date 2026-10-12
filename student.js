@@ -70,32 +70,27 @@ optionCards.forEach(card => {
 });
 
 // REAL-TIME: Listen to all lab stats for live dashboard updates
-function listenToSystemLock() {
-    const systemStatusRef = doc(db, "settings", "systemStatus");
-    onSnapshot(
-        systemStatusRef,
-        (docSnap) => {
-            isSystemLocked = docSnap.exists() && docSnap.data().isLocked;
-            
-            if (isSystemLocked) {
-                openPurposeModalBtn.disabled = true;
-                openPurposeModalBtn.textContent = "🔒 CHECK-INS TEMPORARILY LOCKED";
-                openPurposeModalBtn.style.backgroundColor = "#94a3b8";
-                openPurposeModalBtn.style.cursor = "not-allowed";
-                
-                // Automatically close the modal if it's currently open
-                purposeModal.classList.add('hidden');
-            } else {
-                openPurposeModalBtn.disabled = false;
-                openPurposeModalBtn.textContent = "CHECK IN TO LABORATORY";
-                openPurposeModalBtn.style.backgroundColor = "";
-                openPurposeModalBtn.style.cursor = "";
-            }
-        },
-        (error) => {
-            console.error("Error reading system lock status (check Firestore Rules):", error);
-        }
-    );
+function listenToLabStats() {
+    const sessionsRef = collection(db, "sessions");
+    const q = query(sessionsRef, where("status", "==", "Inside"));
+    
+    onSnapshot(q, (snapshot) => {
+        let classCount = 0;
+        let labCount = 0;
+        let reviewCount = 0;
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.purpose === "Class") classCount++;
+            else if (data.purpose === "Laboratory Work") labCount++;
+            else if (data.purpose === "Review/Rest") reviewCount++;
+        });
+
+        if (statClass) statClass.textContent = classCount;
+        if (statLab) statLab.textContent = labCount;
+        if (statReview) statReview.textContent = reviewCount;
+        if (statTotal) statTotal.textContent = `${snapshot.size} / 24`;
+    });
 }
 
 // REAL-TIME: Listen to current user's session status (Updates UI instantly if Admin forces checkout)
