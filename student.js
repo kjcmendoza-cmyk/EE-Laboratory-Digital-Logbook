@@ -90,9 +90,9 @@ if (purposeModal) {
 
 // Fixed option card selection logic
 optionCards.forEach(card => {
-    card.addEventListener('click', (e) => {
+    card.addEventListener('click', () => {
         const radio = card.querySelector('input[type="radio"]');
-        if (radio && e.target !== radio) {
+        if (radio) {
             radio.checked = true;
         }
         optionCards.forEach(c => c.classList.remove('selected'));
