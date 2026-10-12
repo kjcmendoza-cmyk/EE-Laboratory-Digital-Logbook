@@ -111,21 +111,21 @@
 
         /* Banner */
         .schedule-banner {
-            background-color: var(--open-bg);
-            border: 1px solid #a7f3d0;
-            color: var(--open-text);
-            text-align: center;
-            padding: 12px 16px;
-            border-radius: var(--border-radius);
-            font-size: 13.5px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.06);
-        }
-
+    background-color: var(--open-bg);
+    border: 1px solid #a7f3d0;
+    color: var(--open-text);
+    text-align: center;
+    padding: 10px 12px;
+    border-radius: var(--border-radius);
+    font-size: 12px; /* Reduced slightly so 46+ characters fit on narrow mobile screens */
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap; /* Prevents text from breaking onto a second line */
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.06);
+}
         .status-dot {
             width: 8px;
             height: 8px;
