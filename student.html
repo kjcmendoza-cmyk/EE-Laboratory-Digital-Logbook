@@ -5,6 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EE Laboratory | Digital Logbook</title>
     <style>
+        /* Schedule Modal Styles */
+.day-pill {
+    padding: 6px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.day-pill:hover {
+    background: #e2e8f0;
+}
+
+.day-pill.active {
+    background: #6366f1;
+    color: white;
+    border-color: #6366f1;
+}
+
+.schedule-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    border-left: 4px solid #cbd5e1;
+}
+
+.schedule-row.ongoing {
+    background: #ecfdf5;
+    border-left-color: #10b981;
+}
+
+.col-time {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.col-course {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.ongoing-badge {
+    font-size: 10px;
+    background-color: #10b981;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 30px 20px;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
+    font-style: italic;
+}
         :root {
             --bg-color: #eef2f9;
             --card-bg: #ffffff;
