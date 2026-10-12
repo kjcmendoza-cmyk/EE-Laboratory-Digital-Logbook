@@ -134,6 +134,28 @@ function listenToSystemLock() {
     });
 }
 
+// REAL-TIME: Listen for operating hours updates
+function listenToOperatingHours() {
+    const hoursRef = doc(db, "settings", "operatingHours");
+    onSnapshot(hoursRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.open && data.close) {
+                const formatTime = (timeStr) => {
+                    const [h, m] = timeStr.split(':');
+                    const date = new Date();
+                    date.setHours(parseInt(h), parseInt(m));
+                    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                };
+                const operatingHoursText = document.getElementById('operatingHoursText');
+                if (operatingHoursText) {
+                    operatingHoursText.textContent = `${formatTime(data.open)} – ${formatTime(data.close)}`;
+                }
+            }
+        }
+    });
+}
+
 // Auth State
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -149,6 +171,7 @@ onAuthStateChanged(auth, (user) => {
         listenToUserStatus(user.uid);
         listenToLabStats();
         listenToSystemLock();
+        listenToOperatingHours();
     } else {
         window.location.href = 'login.html';
     }
@@ -163,6 +186,9 @@ confirmCheckInBtn.addEventListener('click', async () => {
     }
 
     const selectedRadio = document.querySelector('input[name="labPurpose"]:checked');
+
+if (!selectedRadio) return;           // <--- ADD THIS LINE
+    const purpose = selectedRadio.value;  // <--- ADD THIS LINE
 
     try {
         const sessionData = {

@@ -168,15 +168,15 @@ saveHoursBtn.addEventListener('click', async () => {
     
     try {
         const settingsRef = doc(db, "settings", "operatingHours");
-        await updateDoc(settingsRef, {
+        await setDoc(settingsRef, {
             open: openTime,
             close: closeTime,
             updatedAt: serverTimestamp()
-        });
+        }, { merge: true });
         alert("Operating hours saved successfully.");
     } catch (error) {
         console.error("Error saving hours:", error);
-        alert("Failed to save operating hours. Make sure the document exists.");
+        alert("Failed to save operating hours.");
     }
 });
 
