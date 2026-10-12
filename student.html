@@ -28,7 +28,7 @@
             padding: 0;
         }
 
-        /* Lock screen height & disable all vertical scrolling */
+        /* Prevent vertical page scroll and lock height */
         html, body {
             height: 100%;
             height: 100dvh;
@@ -36,7 +36,6 @@
             touch-action: none;
         }
 
-        /* Dead-center horizontal & vertical layout */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
@@ -44,7 +43,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 8px 12px;
+            padding: 12px;
         }
 
         .app-wrapper {
@@ -52,8 +51,7 @@
             max-width: 420px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         /* Header & Brand Section */
@@ -66,8 +64,8 @@
         }
 
         .brand-logo-img {
-            max-width: 160px;
-            max-height: 60px;
+            max-width: 220px;
+            max-height: 75px;
             height: auto;
             display: block;
             object-fit: contain;
@@ -80,18 +78,17 @@
             font-size: 10.5px;
             font-weight: 700;
             letter-spacing: 0.3px;
-            padding: 4px 12px;
+            padding: 3px 12px;
             border-radius: 12px;
             display: inline-block;
         }
 
         .portal-title {
-            font-size: 20px;
+            font-size: 21px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: -0.4px;
             line-height: 1.1;
-            margin-top: 1px;
         }
 
         .portal-subtitle {
@@ -99,48 +96,33 @@
             color: var(--text-sub);
         }
 
-        /* Schedule Action & Banner Area */
-        .schedule-section {
+        /* Combined Status & Action Row */
+        .status-action-row {
             display: flex;
-            flex-direction: column;
-            gap: 5px;
+            align-items: center;
+            gap: 6px;
             width: 100%;
-        }
-
-        .btn-schedule {
-            width: 100%;
-            background-color: #e0e7ff;
-            color: #4338ca;
-            border: none;
-            padding: 6px 12px;
-            border-radius: var(--border-radius);
-            font-weight: 700;
-            font-size: 11.5px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(67, 56, 202, 0.08);
-            text-align: center;
-        }
-
-        .btn-schedule:hover {
-            background-color: #c7d2fe;
         }
 
         .schedule-banner {
+            flex: 1;
             background-color: var(--open-bg);
             border: 1px solid #a7f3d0;
             color: var(--open-text);
             text-align: center;
-            padding: 6px 10px;
+            padding: 7px 8px;
             border-radius: var(--border-radius);
-            font-size: 11.5px;
+            font-size: 11px;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 5px;
             white-space: nowrap;
             box-shadow: 0 2px 5px rgba(16, 185, 129, 0.05);
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .status-dot {
@@ -152,6 +134,25 @@
             flex-shrink: 0;
         }
 
+        .btn-schedule {
+            flex-shrink: 0;
+            background-color: #e0e7ff;
+            color: #4338ca;
+            border: none;
+            padding: 7px 11px;
+            border-radius: var(--border-radius);
+            font-weight: 700;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(67, 56, 202, 0.08);
+            white-space: nowrap;
+        }
+
+        .btn-schedule:hover {
+            background-color: #c7d2fe;
+        }
+
         /* Stats Grid */
         .stats-grid {
             display: grid;
@@ -161,7 +162,7 @@
 
         .stat-card {
             background: var(--card-bg);
-            padding: 7px 6px;
+            padding: 8px 6px;
             border-radius: var(--border-radius);
             text-align: center;
             border: 1px solid #f1f5f9;
@@ -174,7 +175,7 @@
         }
 
         .stat-title {
-            font-size: 10.5px;
+            font-size: 11px;
             color: var(--text-sub);
             font-weight: 600;
             display: flex;
@@ -183,7 +184,7 @@
         }
 
         .stat-value {
-            font-size: 16.5px;
+            font-size: 17px;
             font-weight: 800;
             color: var(--text-main);
         }
@@ -191,7 +192,7 @@
         /* User Card */
         .user-card {
             background: var(--card-bg);
-            padding: 7px 12px;
+            padding: 8px 12px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             display: flex;
@@ -209,13 +210,13 @@
         }
 
         .avatar {
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             background: linear-gradient(135deg, #a855f7, #ec4899);
             color: white;
             font-weight: 800;
-            font-size: 12.5px;
+            font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -227,7 +228,7 @@
         }
 
         .user-details h4 {
-            font-size: 12.5px;
+            font-size: 13px;
             font-weight: 700;
             white-space: nowrap;
             overflow: hidden;
@@ -251,7 +252,7 @@
 
         .btn-sm-logout {
             border: none;
-            padding: 4px 10px;
+            padding: 5px 10px;
             border-radius: 8px;
             font-size: 11px;
             font-weight: 700;
@@ -269,7 +270,7 @@
         /* Main Action Card */
         .main-card {
             background: var(--card-bg);
-            padding: 10px 12px;
+            padding: 12px 12px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             text-align: center;
@@ -277,11 +278,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
 
         .section-label {
-            font-size: 9px;
+            font-size: 9.5px;
             letter-spacing: 0.8px;
             font-weight: 800;
             color: #94a3b8;
@@ -292,11 +293,11 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            padding: 3px 10px;
+            padding: 4px 12px;
             border-radius: 14px;
             background-color: #f1f5f9;
             color: #475569;
-            font-size: 11px;
+            font-size: 11.5px;
             font-weight: 700;
         }
 
@@ -317,17 +318,17 @@
         }
 
         .action-subtext {
-            font-size: 10.5px;
+            font-size: 11px;
             color: var(--text-sub);
         }
 
         .btn-primary-action, .btn-checkout-action {
             width: 100%;
-            padding: 11px;
+            padding: 12px;
             border-radius: 10px;
             border: none;
             color: white;
-            font-size: 13px;
+            font-size: 13.5px;
             font-weight: 800;
             letter-spacing: 0.3px;
             cursor: pointer;
@@ -710,13 +711,13 @@
             <div class="portal-subtitle">Federation of United Students of Electrical Engineering</div>
         </div>
 
-        <div class="schedule-section">
-            <button class="btn-schedule" id="viewScheduleBtn">📊 Class Schedule</button>
+        <div class="status-action-row">
             <div class="schedule-banner" id="scheduleBanner">
                 <span class="status-dot" id="scheduleStatusDot"></span>
-                <span id="scheduleStatusText">Laboratory is Currently Open</span>
+                <span id="scheduleStatusText">Open</span>
                 <span>(<span id="operatingHoursText">7:30 AM – 9:00 PM</span>)</span>
             </div>
+            <button class="btn-schedule" id="viewScheduleBtn">📊 Class Schedule</button>
         </div>
 
         <div class="stats-grid">
