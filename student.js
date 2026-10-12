@@ -50,24 +50,93 @@ const scheduleListContainer = document.getElementById('scheduleListContainer');
 const closeScheduleIcon = document.getElementById('closeScheduleIcon');
 const dayPills = document.querySelectorAll('.day-pill');
 
-// Global schedule variables
+// Global state variables
 let allSchedules = [];
 let selectedDay = getCurrentDayString();
+let activeSessionId = null;
+let isSystemLocked = false;
+let currentUserData = null;
+
+// Cooldown Configuration (60 seconds = 1 minute)
+const COOLDOWN_SECONDS = 60;
+let cooldownInterval = null;
 
 function getCurrentDayString() {
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     return days[new Date().getDay()];
 }
 
-let activeSessionId = null;
-let isSystemLocked = false;
-let currentUserData = null;
+// COOLDOWN LOGIC
+function getRemainingCooldownSeconds() {
+    if (!currentUserData) return 0;
+    const lastAction = localStorage.getItem(`lastActionTime_${currentUserData.uid}`);
+    if (!lastAction) return 0;
+    const elapsed = Math.floor((Date.now() - parseInt(lastAction, 10)) / 1000);
+    const remaining = COOLDOWN_SECONDS - elapsed;
+    return remaining > 0 ? remaining : 0;
+}
+
+function updateCooldownUI() {
+    const remaining = getRemainingCooldownSeconds();
+    
+    if (remaining > 0) {
+        if (activeSessionId) {
+            if (checkOutBtn) {
+                checkOutBtn.disabled = true;
+                checkOutBtn.style.opacity = "0.6";
+                checkOutBtn.style.cursor = "not-allowed";
+                checkOutBtn.textContent = `CHECK OUT (${remaining}s)`;
+            }
+        } else {
+            if (openPurposeModalBtn && !isSystemLocked) {
+                openPurposeModalBtn.disabled = true;
+                openPurposeModalBtn.style.opacity = "0.6";
+                openPurposeModalBtn.style.cursor = "not-allowed";
+                openPurposeModalBtn.textContent = `PLEASE WAIT (${remaining}s)`;
+            }
+        }
+    } else {
+        if (checkOutBtn) {
+            checkOutBtn.disabled = false;
+            checkOutBtn.style.opacity = "1";
+            checkOutBtn.style.cursor = "pointer";
+            checkOutBtn.textContent = "CHECK OUT";
+        }
+        if (openPurposeModalBtn && !isSystemLocked) {
+            openPurposeModalBtn.disabled = false;
+            openPurposeModalBtn.style.opacity = "1";
+            openPurposeModalBtn.style.cursor = "pointer";
+            openPurposeModalBtn.textContent = "CHECK IN TO LABORATORY";
+        }
+    }
+    return remaining;
+}
+
+function startCooldownTicker() {
+    if (cooldownInterval) clearInterval(cooldownInterval);
+    
+    const remaining = updateCooldownUI();
+    if (remaining > 0) {
+        cooldownInterval = setInterval(() => {
+            const rem = updateCooldownUI();
+            if (rem <= 0) {
+                clearInterval(cooldownInterval);
+                cooldownInterval = null;
+            }
+        }, 1000);
+    }
+}
 
 // Modal Controls - Check In
 if (openPurposeModalBtn) {
     openPurposeModalBtn.addEventListener('click', () => {
         if (isSystemLocked) {
             alert("Check-ins are currently locked by the administrator.");
+            return;
+        }
+        const remaining = getRemainingCooldownSeconds();
+        if (remaining > 0) {
+            showNotification(`Please wait ${remaining}s before taking action again.`, "notif-red");
             return;
         }
         if (purposeModal) purposeModal.classList.remove('hidden');
@@ -88,7 +157,7 @@ if (purposeModal) {
     });
 }
 
-// Fixed option card selection logic
+// Option card selection logic
 optionCards.forEach(card => {
     card.addEventListener('click', () => {
         const radio = card.querySelector('input[type="radio"]');
@@ -123,7 +192,6 @@ if (scheduleModal) {
     });
 }
 
-// Fixed Day Pill Logic (uses element reference instead of e.target)
 dayPills.forEach(pill => {
     pill.addEventListener('click', () => {
         selectedDay = pill.getAttribute('data-day');
@@ -145,7 +213,6 @@ function updateDayPillsUI() {
 // Check if a class is currently ongoing
 function checkIsOngoing(startTimeStr, endTimeStr, schedDay) {
     const currentDay = getCurrentDayString();
-    // Match both full day ("Monday") and short day ("Mon")
     if (schedDay !== currentDay && schedDay !== currentDay.substring(0, 3)) return false;
     
     const now = new Date();
@@ -170,7 +237,7 @@ function checkIsOngoing(startTimeStr, endTimeStr, schedDay) {
     return currentMinutes >= startTotal && currentMinutes <= endTotal;
 }
 
-// Render the Table Content
+// Render Schedule Table Content
 function renderScheduleTable() {
     if (!scheduleListContainer) return;
     scheduleListContainer.innerHTML = '';
@@ -196,7 +263,6 @@ function renderScheduleTable() {
         const row = document.createElement('div');
         row.className = `schedule-row ${isOngoing ? 'ongoing' : ''}`;
         
-        // Single-line time without <br> and animated ongoing badge
         row.innerHTML = `
             <div class="col-time">${formatTime(sched.startTime)} - ${formatTime(sched.endTime)}</div>
             <div class="col-course">
@@ -208,7 +274,7 @@ function renderScheduleTable() {
     });
 }
 
-// REAL-TIME: Listen to Schedules added by Admin
+// REAL-TIME: Listen to Schedules
 function listenToSchedules() {
     const schedulesRef = collection(db, "schedules");
     onSnapshot(schedulesRef, (snapshot) => {
@@ -219,7 +285,7 @@ function listenToSchedules() {
     }, (err) => console.error("Schedules listener error:", err));
 }
 
-// REAL-TIME: Listen to all lab stats for live dashboard updates
+// REAL-TIME: Listen to lab stats for live dashboard updates
 function listenToLabStats() {
     const sessionsRef = collection(db, "sessions");
     const q = query(sessionsRef, where("status", "==", "Inside"));
@@ -265,10 +331,11 @@ function listenToUserStatus(uid) {
             if (checkOutView) checkOutView.classList.add('hidden');
             if (checkInView) checkInView.classList.remove('hidden');
         }
+        startCooldownTicker();
     }, (err) => console.error("User status listener error:", err));
 }
 
-// REAL-TIME: Listen for admin lock status (Does not hard-disable DOM button)
+// REAL-TIME: Listen for admin lock status
 function listenToSystemLock() {
     const systemStatusRef = doc(db, "settings", "systemStatus");
     onSnapshot(systemStatusRef, (docSnap) => {
@@ -279,11 +346,12 @@ function listenToSystemLock() {
                 openPurposeModalBtn.textContent = "🔒 CHECK-INS TEMPORARILY LOCKED";
                 openPurposeModalBtn.style.backgroundColor = "#94a3b8";
                 openPurposeModalBtn.style.cursor = "not-allowed";
+                openPurposeModalBtn.disabled = true;
                 if (purposeModal) purposeModal.classList.add('hidden');
             } else {
-                openPurposeModalBtn.textContent = "CHECK IN TO LABORATORY";
                 openPurposeModalBtn.style.backgroundColor = "";
-                openPurposeModalBtn.style.cursor = "";
+                openPurposeModalBtn.disabled = false;
+                updateCooldownUI();
             }
         }
     }, (err) => console.error("System lock listener error:", err));
@@ -310,7 +378,7 @@ function listenToOperatingHours() {
     }, (err) => console.error("Operating hours listener error:", err));
 }
 
-// Auth State Listener - Initializes real-time listeners only after user is verified
+// Auth State Listener
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUserData = user;
@@ -325,7 +393,6 @@ onAuthStateChanged(auth, (user) => {
             userAvatar.textContent = initials;
         }
 
-        // Initialize real-time data after authentication
         listenToUserStatus(user.uid);
         listenToLabStats();
         listenToSystemLock();
@@ -350,6 +417,13 @@ if (confirmCheckInBtn) {
             return;
         }
 
+        const remaining = getRemainingCooldownSeconds();
+        if (remaining > 0) {
+            showNotification(`Please wait ${remaining}s before checking in again.`, "notif-red");
+            if (purposeModal) purposeModal.classList.add('hidden');
+            return;
+        }
+
         const selectedRadio = document.querySelector('input[name="labPurpose"]:checked');
         if (!selectedRadio) {
             alert("Please select a purpose.");
@@ -358,6 +432,7 @@ if (confirmCheckInBtn) {
         const purpose = selectedRadio.value;
 
         try {
+            confirmCheckInBtn.disabled = true;
             const sessionData = {
                 uid: currentUserData.uid,
                 email: currentUserData.email || "",
@@ -368,32 +443,55 @@ if (confirmCheckInBtn) {
             };
             
             await addDoc(collection(db, "sessions"), sessionData);
+            
+            // Record timestamp for 1 min cooldown
+            localStorage.setItem(`lastActionTime_${currentUserData.uid}`, Date.now().toString());
+            
             showNotification("Checked In Successfully", "notif-green");
             if (purposeModal) purposeModal.classList.add('hidden');
+            
+            startCooldownTicker();
         } catch (error) {
             console.error("Check-in error:", error);
             alert("Error checking in. Please check your connection.");
+        } finally {
+            confirmCheckInBtn.disabled = false;
         }
     });
 }
 
-// Check-Out Action with Feedback
+// Check-Out Action
 if (checkOutBtn) {
     checkOutBtn.addEventListener('click', async () => {
         if (!activeSessionId) {
             alert("No active session found to check out.");
             return;
         }
+
+        const remaining = getRemainingCooldownSeconds();
+        if (remaining > 0) {
+            showNotification(`Please wait ${remaining}s before checking out again.`, "notif-red");
+            return;
+        }
+
         try {
+            checkOutBtn.disabled = true;
             const sessionRef = doc(db, "sessions", activeSessionId);
             await updateDoc(sessionRef, {
                 status: "Out",
                 checkOutTime: serverTimestamp()
             });
+
+            // Record timestamp for 1 min cooldown
+            localStorage.setItem(`lastActionTime_${currentUserData.uid}`, Date.now().toString());
+
             showNotification("Checked Out Successfully", "notif-red");
+            startCooldownTicker();
         } catch (error) {
             console.error("Check-out error:", error);
             alert("Error checking out.");
+        } finally {
+            checkOutBtn.disabled = false;
         }
     });
 }
