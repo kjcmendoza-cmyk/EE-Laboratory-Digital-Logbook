@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EE Laboratory | Digital Logbook</title>
     <style>
         :root {
@@ -19,7 +19,7 @@
             --primary-green-hover: #059669;
             --danger-red: #ef4444;
             --danger-red-hover: #dc2626;
-            --border-radius: 16px;
+            --border-radius: 14px;
         }
 
         * {
@@ -28,6 +28,15 @@
             padding: 0;
         }
 
+        /* Lock screen height & disable all vertical scrolling */
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* Dead-center horizontal & vertical layout */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
@@ -35,8 +44,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 12px;
+            padding: 10px 12px;
         }
 
         .app-wrapper {
@@ -44,7 +52,8 @@
             max-width: 420px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            justify-content: center;
+            gap: 8px;
         }
 
         /* Header & Brand Section */
@@ -53,11 +62,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
         }
 
         .brand-logo-img {
-            max-width: 180px; /* Scaled up for visual balance */
+            max-width: 120px;
+            max-height: 50px;
             height: auto;
             display: block;
             object-fit: contain;
@@ -69,30 +79,30 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 6px;
         }
 
         .portal-badge {
             background-color: var(--badge-bg);
             color: var(--badge-text);
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: 700;
-            letter-spacing: 0.4px;
-            padding: 4px 11px;
-            border-radius: 12px;
+            letter-spacing: 0.3px;
+            padding: 3px 10px;
+            border-radius: 10px;
         }
 
         .btn-schedule {
             background-color: #e0e7ff;
             color: #4338ca;
             border: none;
-            padding: 4px 11px;
-            border-radius: 12px;
+            padding: 4px 10px;
+            border-radius: 10px;
             font-weight: 700;
-            font-size: 11.5px;
+            font-size: 11px;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 5px rgba(67, 56, 202, 0.08);
+            box-shadow: 0 2px 4px rgba(67, 56, 202, 0.08);
             white-space: nowrap;
         }
 
@@ -101,7 +111,7 @@
         }
 
         .portal-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: -0.4px;
@@ -109,7 +119,7 @@
         }
 
         .portal-subtitle {
-            font-size: 11.5px;
+            font-size: 11px;
             color: var(--text-sub);
         }
 
@@ -119,16 +129,16 @@
             border: 1px solid #a7f3d0;
             color: var(--open-text);
             text-align: center;
-            padding: 8px 12px;
+            padding: 7px 10px;
             border-radius: var(--border-radius);
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             white-space: nowrap;
-            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.05);
+            box-shadow: 0 2px 5px rgba(16, 185, 129, 0.05);
         }
 
         .status-dot {
@@ -144,16 +154,16 @@
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
+            gap: 6px;
         }
 
         .stat-card {
             background: var(--card-bg);
-            padding: 10px 8px;
+            padding: 8px 6px;
             border-radius: var(--border-radius);
             text-align: center;
             border: 1px solid #f1f5f9;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -171,7 +181,7 @@
         }
 
         .stat-value {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             color: var(--text-main);
         }
@@ -179,31 +189,31 @@
         /* User Card */
         .user-card {
             background: var(--card-bg);
-            padding: 10px 12px;
+            padding: 8px 12px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
         }
 
         .user-profile {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             min-width: 0;
         }
 
         .avatar {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             background: linear-gradient(135deg, #a855f7, #ec4899);
             color: white;
             font-weight: 800;
-            font-size: 13.5px;
+            font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -215,7 +225,7 @@
         }
 
         .user-details h4 {
-            font-size: 13.5px;
+            font-size: 13px;
             font-weight: 700;
             white-space: nowrap;
             overflow: hidden;
@@ -223,7 +233,7 @@
         }
 
         .user-details p {
-            font-size: 11px;
+            font-size: 10.5px;
             color: var(--text-sub);
             white-space: nowrap;
             overflow: hidden;
@@ -239,9 +249,9 @@
 
         .btn-sm-logout {
             border: none;
-            padding: 5px 12px;
+            padding: 5px 10px;
             border-radius: 8px;
-            font-size: 11.5px;
+            font-size: 11px;
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
@@ -257,19 +267,19 @@
         /* Main Action Card */
         .main-card {
             background: var(--card-bg);
-            padding: 14px 14px;
+            padding: 12px 12px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .section-label {
-            font-size: 10px;
+            font-size: 9.5px;
             letter-spacing: 0.8px;
             font-weight: 800;
             color: #94a3b8;
@@ -279,12 +289,12 @@
         .status-pill {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 5px 14px;
-            border-radius: 16px;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 14px;
             background-color: #f1f5f9;
             color: #475569;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 700;
         }
 
@@ -294,8 +304,8 @@
         }
 
         .pill-dot {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background-color: #94a3b8;
         }
@@ -305,26 +315,26 @@
         }
 
         .action-subtext {
-            font-size: 11.5px;
+            font-size: 11px;
             color: var(--text-sub);
         }
 
         .btn-primary-action, .btn-checkout-action {
             width: 100%;
-            padding: 13px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 10px;
             border: none;
             color: white;
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 800;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.3px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .btn-primary-action {
             background-color: var(--primary-green);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.25);
         }
 
         .btn-primary-action:hover {
@@ -333,7 +343,7 @@
 
         .btn-checkout-action {
             background-color: var(--danger-red);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+            box-shadow: 0 3px 10px rgba(239, 68, 68, 0.25);
         }
 
         .btn-checkout-action:hover {
@@ -354,13 +364,13 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            padding: 20px;
+            padding: 16px;
         }
 
         .modal-card {
             background: #ffffff;
-            border-radius: 24px;
-            padding: 20px 18px 18px;
+            border-radius: 20px;
+            padding: 18px 16px 16px;
             width: 100%;
             max-width: 420px;
             box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
@@ -373,17 +383,17 @@
         }
 
         .modal-header-text h3 {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: -0.4px;
         }
 
         .modal-header-text p {
-            font-size: 12.5px;
+            font-size: 12px;
             color: #64748b;
             margin-top: 2px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         /* Day Pills Bar in Schedule Modal */
@@ -391,8 +401,8 @@
             display: flex;
             gap: 6px;
             overflow-x: auto;
-            margin-bottom: 14px;
-            padding: 2px 2px 6px 2px;
+            margin-bottom: 12px;
+            padding: 2px 2px 4px 2px;
             scrollbar-width: none;
         }
 
@@ -401,12 +411,12 @@
         }
 
         .day-pill {
-            padding: 7px 14px;
+            padding: 6px 12px;
             border: none;
-            border-radius: 18px;
+            border-radius: 16px;
             background: #f1f5f9;
             color: #64748b;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -421,7 +431,7 @@
         .day-pill.active {
             background: linear-gradient(135deg, #6366f1, #a855f7);
             color: #ffffff;
-            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 3px 8px rgba(99, 102, 241, 0.3);
         }
 
         /* Schedule Row Cards */
@@ -431,13 +441,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
-            border-radius: 14px;
+            gap: 10px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            border-radius: 12px;
             background: #ffffff;
             border: 1px solid #f1f5f9;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
@@ -461,12 +471,12 @@
         }
 
         .col-time {
-            font-size: 12px;
+            font-size: 11.5px;
             color: #64748b;
             font-weight: 700;
             white-space: nowrap;
             flex-shrink: 0;
-            padding-left: 4px;
+            padding-left: 2px;
         }
 
         .col-course {
@@ -475,26 +485,26 @@
             align-items: flex-end;
             text-align: right;
             min-width: 0;
-            font-size: 13.5px;
+            font-size: 13px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: -0.2px;
             overflow-wrap: break-word;
-            line-height: 1.3;
+            line-height: 1.25;
         }
 
         .ongoing-badge {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            font-size: 10px;
+            font-size: 9.5px;
             font-weight: 800;
             background-color: #10b981;
             color: white;
-            padding: 2px 7px;
-            border-radius: 8px;
-            margin-top: 4px;
-            letter-spacing: 0.4px;
+            padding: 2px 6px;
+            border-radius: 6px;
+            margin-top: 3px;
+            letter-spacing: 0.3px;
         }
 
         .pulse-dot {
@@ -514,9 +524,9 @@
 
         .empty-state {
             text-align: center;
-            padding: 30px 16px;
+            padding: 24px 16px;
             color: #94a3b8;
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 600;
         }
 
@@ -524,19 +534,19 @@
         .modal-options {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .option-card {
             width: 100%;
-            padding: 14px 16px;
+            padding: 12px 14px;
             border: 2px solid #e2e8f0;
-            border-radius: 16px;
+            border-radius: 14px;
             background: #f8fafc;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             transition: all 0.2s ease;
             user-select: none;
         }
@@ -549,7 +559,7 @@
         .option-card.selected {
             border-color: #6366f1;
             background: #f5f3ff;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12);
+            box-shadow: 0 3px 10px rgba(99, 102, 241, 0.12);
         }
 
         .option-card input[type="radio"] {
@@ -557,8 +567,8 @@
         }
 
         .custom-radio {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             border: 2px solid #94a3b8;
             display: flex;
@@ -575,45 +585,45 @@
 
         .option-card.selected .custom-radio::after {
             content: '';
-            width: 9px;
-            height: 9px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background-color: #6366f1;
         }
 
         .option-icon {
-            font-size: 22px;
+            font-size: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             background: #ffffff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
             flex-shrink: 0;
         }
 
         .option-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 800;
             color: #0f172a;
         }
 
         .modal-actions {
             display: flex;
-            gap: 10px;
-            margin-top: 18px;
+            gap: 8px;
+            margin-top: 14px;
         }
 
         .btn-cancel {
             flex: 1;
-            padding: 12px;
-            border-radius: 14px;
+            padding: 10px;
+            border-radius: 12px;
             border: none;
             background-color: #f1f5f9;
             color: #475569;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
@@ -626,16 +636,16 @@
 
         .btn-confirm {
             flex: 1.4;
-            padding: 12px;
-            border-radius: 14px;
+            padding: 10px;
+            border-radius: 12px;
             border: none;
             background: linear-gradient(135deg, #6366f1, #a855f7);
             color: #ffffff;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 5px 14px rgba(168, 85, 247, 0.28);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.28);
         }
 
         .btn-confirm:hover {
@@ -646,10 +656,10 @@
         .close-icon-btn {
             background: #f1f5f9;
             border: none;
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            font-size: 13px;
+            font-size: 12px;
             color: #64748b;
             cursor: pointer;
             display: flex;
@@ -667,19 +677,19 @@
 
         .notification {
             position: fixed;
-            top: 16px;
+            top: 12px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 10px 20px;
-            border-radius: 30px;
+            padding: 8px 18px;
+            border-radius: 20px;
             color: white;
             font-weight: 700;
-            font-size: 13px;
+            font-size: 12px;
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
             z-index: 2000;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
         }
         .notif-green { background-color: var(--primary-green); }
         .notif-red { background-color: var(--danger-red); }
@@ -758,7 +768,7 @@
             </div>
 
             <div id="checkOutView" class="hidden" style="width: 100%;">
-                <p style="font-size: 11.5px; color: var(--text-sub); margin-bottom: 6px;">
+                <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 4px;">
                     Checked in for: <strong id="currentPurpose" style="color: var(--text-main);">--</strong>
                 </p>
                 <button class="btn-checkout-action" id="checkOutBtn">
@@ -828,7 +838,7 @@
             </div>
 
             <!-- Schedule List Container -->
-            <div id="scheduleListContainer" style="min-height: 140px; max-height: 280px; overflow-y: auto; padding-right: 2px;">
+            <div id="scheduleListContainer" style="min-height: 120px; max-height: 240px; overflow-y: auto; padding-right: 2px;">
                 <!-- JavaScript will inject schedule rows here -->
             </div>
 
