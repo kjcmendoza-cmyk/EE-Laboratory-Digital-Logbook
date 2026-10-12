@@ -3,75 +3,408 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADDU Lab | Student Check-In</title>
+    <title>EE Laboratory | Digital Logbook</title>
     <style>
         :root {
-            --primary: #003366; 
-            --bg: #f4f7f6;
-            --text: #333;
-            --success: #28a745;
-            --danger: #dc3545;
+            --bg-color: #eef2f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --accent-purple: #818cf8;
+            --badge-bg: #e0e7ff;
+            --badge-text: #4338ca;
+            --open-bg: #d1fae5;
+            --open-text: #065f46;
+            --primary-green: #10b981;
+            --primary-green-hover: #059669;
+            --danger-red: #ef4444;
+            --danger-red-hover: #dc2626;
+            --border-radius: 18px;
         }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: var(--bg); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
-            color: var(--text);
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px 10px;
+        }
+
+        .app-wrapper {
+            width: 100%;
+            max-width: 440px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Top Graphic / Branding */
+        .brand-section {
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .brand-logo-img {
+            max-width: 180px;
+            height: auto;
+            display: block;
+            margin: 0 auto 12px;
+            object-fit: contain;
+        }
+
+        .portal-badge {
+            display: inline-block;
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
+
+        .portal-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .portal-subtitle {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+
+        /* Top Actions Bar */
+        .top-bar {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-schedule {
+            background-color: #e0e7ff;
+            color: #4338ca;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Laboratory Schedule Banner */
+        .schedule-banner {
+            background-color: var(--open-bg);
+            border: 1px solid #a7f3d0;
+            color: var(--open-text);
+            text-align: center;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Stats Section (Single Occupants Counter) */
+        .stats-single {
+            width: 100%;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .stat-title {
+            font-size: 13px;
+            color: var(--text-sub);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        /* User Card */
+        .user-card {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-details h4 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .user-details p {
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+
+        .user-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-end;
+        }
+
+        .btn-sm-edit {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-sm-logout {
+            background-color: #fef2f2;
+            color: var(--danger-red);
+            border: none;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Status & Main Action Card */
+        .main-card {
+            background: var(--card-bg);
+            padding: 24px 20px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .section-label {
+            font-size: 12px;
+            letter-spacing: 0.8px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            border-radius: 20px;
+            background-color: #f1f5f9;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .status-pill.inside {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .pill-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #94a3b8;
+        }
+
+        .status-pill.inside .pill-dot {
+            background-color: #10b981;
+        }
+
+        .action-subtext {
+            font-size: 13px;
+            color: var(--text-sub);
+        }
+
+        .btn-primary-action {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            background-color: var(--primary-green);
+            color: white;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-primary-action:hover {
+            background-color: var(--primary-green-hover);
+        }
+
+        .btn-checkout-action {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            background-color: var(--danger-red);
+            color: white;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-checkout-action:hover {
+            background-color: var(--danger-red-hover);
+        }
+
+        /* Purpose Modal Popup (Matches Inspiration UI) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            animation: popUp 0.2s ease-out;
             text-align: center;
         }
-        .container {
-            background: white; 
-            padding: 2.5rem; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-            width: 100%; 
-            max-width: 450px; 
+
+        @keyframes popUp {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
-        .header { margin-bottom: 20px; }
-        .header h2 { color: var(--primary); margin: 0 0 5px 0; }
-        .user-info { font-size: 14px; color: #666; margin-bottom: 20px;}
-        
-        .hidden { display: none; }
-        
-        /* Check-In Buttons */
-        .btn-purpose {
-            display: block;
-            width: 100%;
-            padding: 20px;
-            margin: 15px 0;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            background: #fff;
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--text);
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+
+        .modal-header {
+            margin-bottom: 20px;
+            position: relative;
         }
-        .btn-purpose:hover { border-color: var(--primary); background: #f0f8ff; }
-        
-        /* Check-Out Button */
-        .btn-checkout {
-            display: block;
-            width: 100%;
-            padding: 25px;
-            margin: 20px 0;
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .btn-close-modal {
+            position: absolute;
+            right: 0;
+            top: -4px;
+            background: none;
             border: none;
-            border-radius: 12px;
-            background: var(--danger);
-            font-size: 20px;
-            font-weight: bold;
-            color: white;
+            font-size: 22px;
+            color: var(--text-sub);
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
-            transition: transform 0.1s;
         }
-        .btn-checkout:active { transform: scale(0.98); }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-purpose {
+            width: 100%;
+            padding: 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 14px;
+            background: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .btn-purpose:hover {
+            border-color: #818cf8;
+            background-color: #f8fafc;
+        }
+
+        /* Utility */
+        .hidden { display: none !important; }
 
         /* Notification Banner */
         .notification {
@@ -79,47 +412,120 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 15px 30px;
-            border-radius: 8px;
+            padding: 12px 24px;
+            border-radius: 30px;
             color: white;
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 14px;
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
-            z-index: 1000;
+            z-index: 2000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-        .notif-green { background-color: var(--success); }
-        .notif-red { background-color: var(--danger); }
+        .notif-green { background-color: var(--primary-green); }
+        .notif-red { background-color: var(--danger-red); }
         .show-notif { opacity: 1; }
-        
-        .logout { margin-top: 20px; font-size: 14px; color: #888; text-decoration: underline; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="notification" id="notifBanner">Status Updated</div>
 
-    <div class="container">
-        <div class="header">
-            <h2>EE Laboratory</h2>
-            <div class="user-info" id="userInfo">Loading profile...</div>
+    <div class="app-wrapper">
+        <!-- Branding Header -->
+        <div class="brand-section">
+            <img src="fusee-logo.png" alt="FUSEE Logo" class="brand-logo-img">
+            <div class="portal-badge">⚡ EE LABORATORY PORTAL</div>
+            <div class="portal-title">Digital Logbook</div>
+            <div class="portal-subtitle">Federation of United Students of Electrical Engineering</div>
         </div>
 
-        <!-- VIEW: OUTSIDE (Requires Check-In) -->
-        <div id="checkInView" class="hidden">
-            <p>Select your purpose of entry:</p>
-            <button class="btn-purpose" data-purpose="Laboratory Work">🛠️ Laboratory Work</button>
-            <button class="btn-purpose" data-purpose="Class">📚 Class</button>
-            <button class="btn-purpose" data-purpose="Review / Rest">☕ Review / Rest</button>
+        <!-- Class Schedule Button -->
+        <div class="top-bar">
+            <button class="btn-schedule">📊 Class Schedule</button>
         </div>
 
-        <!-- VIEW: INSIDE (Requires Check-Out) -->
-        <div id="checkOutView" class="hidden">
-            <p>You are currently checked in for: <br><strong id="currentPurpose">...</strong></p>
-            <button class="btn-checkout" id="checkOutBtn">Tap to Check Out</button>
+        <!-- Status Banner -->
+        <div class="schedule-banner">
+            <span class="status-dot"></span>
+            Laboratory is Currently Open (7:30 AM – 9:00 PM)
         </div>
 
-        <div class="logout" id="logoutBtn">Sign Out</div>
+        <!-- Lab Stats (Retained Only Total Occupants) -->
+        <div class="stats-single">
+            <div class="stat-card">
+                <div class="stat-title">⚡ Total Occupants</div>
+                <div class="stat-value">1 / 24</div>
+            </div>
+        </div>
+
+        <!-- User Profile Card -->
+        <div class="user-card">
+            <div class="user-profile">
+                <div class="avatar" id="userAvatar">--</div>
+                <div class="user-details">
+                    <h4 id="userName">Loading...</h4>
+                    <p id="userInfo">Logged in...</p>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="btn-sm-edit">Edit</button>
+                <button class="btn-sm-logout" id="logoutBtn">Log Out</button>
+            </div>
+        </div>
+
+        <!-- Main Check-In / Check-Out Container -->
+        <div class="main-card">
+            <div class="section-label">CURRENT LABORATORY STATUS</div>
+            
+            <div class="status-pill" id="statusBadge">
+                <span class="pill-dot"></span>
+                <span id="statusText">CHECKED OUT</span>
+            </div>
+
+            <div class="action-subtext" id="actionSubtext">
+                Tap below when entering or leaving
+            </div>
+
+            <!-- View: Outside (Triggers modal popup on click) -->
+            <div id="checkInView" style="width: 100%;">
+                <button class="btn-primary-action" id="openPurposeModalBtn">
+                    CHECK IN TO LABORATORY
+                </button>
+            </div>
+
+            <!-- View: Inside (Shows Check-Out Button) -->
+            <div id="checkOutView" class="hidden" style="width: 100%;">
+                <p style="font-size: 13px; color: var(--text-sub); margin-bottom: 10px;">
+                    Checked in for: <strong id="currentPurpose" style="color: var(--text-main);">--</strong>
+                </p>
+                <button class="btn-checkout-action" id="checkOutBtn">
+                    CHECK OUT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Purpose Selection Modal Popup (Appears when clicking Check-In) -->
+    <div id="purposeModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Select your purpose of entry:</h3>
+                <button class="btn-close-modal" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <button class="btn-purpose" data-purpose="Laboratory Work">
+                    🛠️ Laboratory Work
+                </button>
+                <button class="btn-purpose" data-purpose="Class">
+                    📚 Class
+                </button>
+                <button class="btn-purpose" data-purpose="Review / Rest">
+                    ☕ Review / Rest
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- External Script -->
