@@ -1,6 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, updateDoc, doc, query, where, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, updateDoc, doc, query, where, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
@@ -15,6 +15,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
 // DOM Elements
 const userInfo = document.getElementById('userInfo');
 const userName = document.getElementById('userName');
@@ -44,22 +45,31 @@ let activeSessionId = null;
 let isSystemLocked = false;
 let currentUserData = null;
 
-// Modal Trigger Control
-openPurposeModalBtn.addEventListener('click', () => {
-    if (isSystemLocked) {
-        alert("Check-ins are currently locked by the administrator.");
-        return;
-    }
-    purposeModal.classList.remove('hidden');
-});
-closeModalBtn.addEventListener('click', () => {
-    purposeModal.classList.add('hidden');
-});
-purposeModal.addEventListener('click', (e) => {
-    if (e.target === purposeModal) {
-        purposeModal.classList.add('hidden');
-    }
-});
+// Modal Controls
+if (openPurposeModalBtn) {
+    openPurposeModalBtn.addEventListener('click', () => {
+        if (isSystemLocked) {
+            alert("Check-ins are currently locked by the administrator.");
+            return;
+        }
+        if (purposeModal) purposeModal.classList.remove('hidden');
+    });
+}
+
+if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => {
+        if (purposeModal) purposeModal.classList.add('hidden');
+    });
+}
+
+if (purposeModal) {
+    purposeModal.addEventListener('click', (e) => {
+        if (e.target === purposeModal) {
+            purposeModal.classList.add('hidden');
+        }
+    });
+}
+
 optionCards.forEach(card => {
     card.addEventListener('click', () => {
         optionCards.forEach(c => c.classList.remove('selected'));
@@ -90,10 +100,10 @@ function listenToLabStats() {
         if (statLab) statLab.textContent = labCount;
         if (statReview) statReview.textContent = reviewCount;
         if (statTotal) statTotal.textContent = `${snapshot.size} / 24`;
-    });
+    }, (err) => console.error("Lab stats listener error:", err));
 }
 
-// REAL-TIME: Listen to current user's session status (Updates UI instantly if Admin forces checkout)
+// REAL-TIME: Listen to current user's session status
 function listenToUserStatus(uid) {
     const sessionsRef = collection(db, "sessions");
     const q = query(sessionsRef, where("uid", "==", uid), where("status", "==", "Inside"), limit(1));
@@ -102,20 +112,20 @@ function listenToUserStatus(uid) {
         if (!snapshot.empty) {
             const sessionDoc = snapshot.docs[0];
             activeSessionId = sessionDoc.id;
-            currentPurpose.textContent = sessionDoc.data().purpose;
+            if (currentPurpose) currentPurpose.textContent = sessionDoc.data().purpose || "--";
             
-            statusBadge.classList.add('inside');
-            statusText.textContent = "CHECKED IN";
-            checkInView.classList.add('hidden');
-            checkOutView.classList.remove('hidden');
+            if (statusBadge) statusBadge.classList.add('inside');
+            if (statusText) statusText.textContent = "CHECKED IN";
+            if (checkInView) checkInView.classList.add('hidden');
+            if (checkOutView) checkOutView.classList.remove('hidden');
         } else {
             activeSessionId = null;
-            statusBadge.classList.remove('inside');
-            statusText.textContent = "CHECKED OUT";
-            checkOutView.classList.add('hidden');
-            checkInView.classList.remove('hidden');
+            if (statusBadge) statusBadge.classList.remove('inside');
+            if (statusText) statusText.textContent = "CHECKED OUT";
+            if (checkOutView) checkOutView.classList.add('hidden');
+            if (checkInView) checkInView.classList.remove('hidden');
         }
-    });
+    }, (err) => console.error("User status listener error:", err));
 }
 
 // REAL-TIME: Listen for admin lock status
@@ -124,26 +134,28 @@ function listenToSystemLock() {
     onSnapshot(systemStatusRef, (docSnap) => {
         isSystemLocked = docSnap.exists() && docSnap.data().isLocked;
         
-        if (isSystemLocked) {
-            openPurposeModalBtn.disabled = true;
-            openPurposeModalBtn.textContent = "🔒 CHECK-INS TEMPORARILY LOCKED";
-            openPurposeModalBtn.style.backgroundColor = "#94a3b8";
-            openPurposeModalBtn.style.cursor = "not-allowed";
-        } else {
-            openPurposeModalBtn.disabled = false;
-            openPurposeModalBtn.textContent = "CHECK IN TO LABORATORY";
-            openPurposeModalBtn.style.backgroundColor = "";
-            openPurposeModalBtn.style.cursor = "";
+        if (openPurposeModalBtn) {
+            if (isSystemLocked) {
+                openPurposeModalBtn.disabled = true;
+                openPurposeModalBtn.textContent = "🔒 CHECK-INS TEMPORARILY LOCKED";
+                openPurposeModalBtn.style.backgroundColor = "#94a3b8";
+                openPurposeModalBtn.style.cursor = "not-allowed";
+                if (purposeModal) purposeModal.classList.add('hidden');
+            } else {
+                openPurposeModalBtn.disabled = false;
+                openPurposeModalBtn.textContent = "CHECK IN TO LABORATORY";
+                openPurposeModalBtn.style.backgroundColor = "";
+                openPurposeModalBtn.style.cursor = "";
+            }
         }
-    });
+    }, (err) => console.error("System lock listener error:", err));
 }
 
-// REAL-TIME: Listen for operating hours and update lab status banner dynamically
+// REAL-TIME: Listen for operating hours
 function listenToOperatingHours() {
     const hoursRef = doc(db, "settings", "operatingHours");
     onSnapshot(hoursRef, (docSnap) => {
         if (!docSnap.exists()) return;
-        
         const data = docSnap.data();
         if (data.open && data.close) {
             const formatTime = (timeStr) => {
@@ -152,60 +164,28 @@ function listenToOperatingHours() {
                 date.setHours(parseInt(h), parseInt(m));
                 return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
             };
-
-            // Update operating hours text range
             const operatingHoursText = document.getElementById('operatingHoursText');
             if (operatingHoursText) {
                 operatingHoursText.textContent = `${formatTime(data.open)} – ${formatTime(data.close)}`;
             }
-
-            // Check if current time is within open/close window
-            const now = new Date();
-            const [openH, openM] = data.open.split(':').map(Number);
-            const [closeH, closeM] = data.close.split(':').map(Number);
-
-            const openTime = new Date();
-            openTime.setHours(openH, openM, 0, 0);
-
-            const closeTime = new Date();
-            closeTime.setHours(closeH, closeM, 0, 0);
-
-            const isOpen = now >= openTime && now <= closeTime;
-
-            // Update banner text, dot, and colors dynamically
-            const banner = document.getElementById('scheduleBanner');
-            const statusText = document.getElementById('scheduleStatusText');
-            const statusDot = document.getElementById('scheduleStatusDot');
-
-            if (banner && statusText && statusDot) {
-                if (isOpen) {
-                    statusText.textContent = "Laboratory is Currently Open";
-                    statusDot.style.backgroundColor = "#10b981";
-                    banner.style.backgroundColor = "#d1fae5";
-                    banner.style.borderColor = "#a7f3d0";
-                    banner.style.color = "#065f46";
-                } else {
-                    statusText.textContent = "Laboratory is Currently Closed";
-                    statusDot.style.backgroundColor = "#ef4444";
-                    banner.style.backgroundColor = "#fee2e2";
-                    banner.style.borderColor = "#fca5a5";
-                    banner.style.color = "#991b1b";
-                }
-            }
         }
-    });
+    }, (err) => console.error("Operating hours listener error:", err));
 }
 
-// Auth State
+// Auth State Listener
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUserData = user;
-        const displayName = user.displayName || user.email.split('@')[0];
-        userName.textContent = `Hello, ${displayName}!`;
-        userInfo.textContent = user.email;
+        const fallbackName = user.email ? user.email.split('@')[0] : "Student";
+        const displayName = user.displayName || fallbackName;
 
-        const initials = displayName.substring(0, 2).toUpperCase();
-        userAvatar.textContent = initials;
+        if (userName) userName.textContent = `Hello, ${displayName}!`;
+        if (userInfo) userInfo.textContent = user.email || "Logged In";
+
+        if (userAvatar) {
+            const initials = displayName.substring(0, 2).toUpperCase();
+            userAvatar.textContent = initials;
+        }
 
         // Initialize real-time listeners
         listenToUserStatus(user.uid);
@@ -218,59 +198,58 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // Check-In Action
-confirmCheckInBtn.addEventListener('click', async () => {
-    if (isSystemLocked) {
-        alert("Check-ins are currently locked by the administrator.");
-        purposeModal.classList.add('hidden');
-        return;
-    }
+if (confirmCheckInBtn) {
+    confirmCheckInBtn.addEventListener('click', async () => {
+        if (isSystemLocked) {
+            alert("Check-ins are currently locked by the administrator.");
+            if (purposeModal) purposeModal.classList.add('hidden');
+            return;
+        }
 
-    const selectedRadio = document.querySelector('input[name="labPurpose"]:checked');
+        const selectedRadio = document.querySelector('input[name="labPurpose"]:checked');
+        if (!selectedRadio) return;
+        const purpose = selectedRadio.value;
 
-if (!selectedRadio) return;           // <--- ADD THIS LINE
-    const purpose = selectedRadio.value;  // <--- ADD THIS LINE
-
-    try {
-        const sessionData = {
-            uid: currentUserData.uid,
-            email: currentUserData.email,
-            name: currentUserData.displayName || currentUserData.email,
-            purpose: purpose,
-            status: "Inside", // Standardized String
-            checkInTime: serverTimestamp()
-        };
-        
-        await addDoc(collection(db, "sessions"), sessionData);
-        
-        showNotification("Checked In Successfully", "notif-green");
-        purposeModal.classList.add('hidden');
-        
-    } catch (error) {
-        console.error("Check-in error:", error);
-        alert("Error checking in. Please check your connection.");
-    }
-});
+        try {
+            const sessionData = {
+                uid: currentUserData.uid,
+                email: currentUserData.email || "",
+                name: currentUserData.displayName || (currentUserData.email ? currentUserData.email.split('@')[0] : "Student"),
+                purpose: purpose,
+                status: "Inside",
+                checkInTime: serverTimestamp()
+            };
+            
+            await addDoc(collection(db, "sessions"), sessionData);
+            showNotification("Checked In Successfully", "notif-green");
+            if (purposeModal) purposeModal.classList.add('hidden');
+        } catch (error) {
+            console.error("Check-in error:", error);
+            alert("Error checking in. Please check your connection.");
+        }
+    });
+}
 
 // Check-Out Action
-checkOutBtn.addEventListener('click', async () => {
-    if (!activeSessionId) return;
-    
-    try {
-        const sessionRef = doc(db, "sessions", activeSessionId);
-        await updateDoc(sessionRef, {
-            status: "Out", // Standardized String matching admin
-            checkOutTime: serverTimestamp()
-        });
-        
-        showNotification("Checked Out Successfully", "notif-red");
-        
-    } catch (error) {
-        console.error("Check-out error:", error);
-        alert("Error checking out.");
-    }
-});
+if (checkOutBtn) {
+    checkOutBtn.addEventListener('click', async () => {
+        if (!activeSessionId) return;
+        try {
+            const sessionRef = doc(db, "sessions", activeSessionId);
+            await updateDoc(sessionRef, {
+                status: "Out",
+                checkOutTime: serverTimestamp()
+            });
+            showNotification("Checked Out Successfully", "notif-red");
+        } catch (error) {
+            console.error("Check-out error:", error);
+            alert("Error checking out.");
+        }
+    });
+}
 
 function showNotification(msg, colorClass) {
+    if (!notifBanner) return;
     notifBanner.textContent = msg;
     notifBanner.className = `notification ${colorClass} show-notif`;
     setTimeout(() => {
@@ -278,6 +257,8 @@ function showNotification(msg, colorClass) {
     }, 2500);
 }
 
-logoutBtn.addEventListener('click', () => {
-    signOut(auth);
-});
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        signOut(auth);
+    });
+}
