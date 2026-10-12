@@ -639,7 +639,37 @@
             </div>
         </div>
     </div>
+<!-- Class Schedule Modal -->
+    <div id="scheduleModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div class="modal-header-text">
+                    <h3>Class Schedule</h3>
+                    <p>Select a day to view scheduled sessions</p>
+                </div>
+                <button id="closeScheduleIcon" style="background: none; border: none; font-size: 20px; cursor: pointer;">✖</button>
+            </div>
+            
+            <!-- Day Pills -->
+            <div style="display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 5px;">
+                <button class="day-pill" data-day="Monday">Mon</button>
+                <button class="day-pill" data-day="Tuesday">Tue</button>
+                <button class="day-pill" data-day="Wednesday">Wed</button>
+                <button class="day-pill" data-day="Thursday">Thu</button>
+                <button class="day-pill" data-day="Friday">Fri</button>
+                <button class="day-pill" data-day="Saturday">Sat</button>
+            </div>
 
+            <!-- Schedule List Container -->
+            <div id="scheduleListContainer" style="min-height: 150px; max-height: 300px; overflow-y: auto;">
+                <!-- JavaScript will inject the schedule rows here -->
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" id="closeScheduleModalBtn">Close Schedule</button>
+            </div>
+        </div>
+    </div>
     <script type="module" src="student.js"></script>
 </body>
 </html>
