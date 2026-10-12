@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc, serverTimestamp, getDocs, deleteDoc, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc, serverTimestamp, getDocs, deleteDoc, addDoc, query, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
@@ -26,6 +26,8 @@ const mReview = document.getElementById('metric-review');
 const mOccupants = document.getElementById('metric-occupants');
 const mLogsToday = document.getElementById('metric-logs');
 const mRegistered = document.getElementById('metric-registered');
+
+let currentOperatingHours = { open: "07:30", close: "21:00" };
 
 onAuthStateChanged(auth, (user) => {
     if (!user) {
@@ -57,10 +59,63 @@ let allSessionDocs = [];
     if (el) el.addEventListener('input', renderTable);
 });
 
+// Real-time operating hours listener
+const hoursRef = doc(db, "settings", "operatingHours");
+onSnapshot(hoursRef, (docSnap) => {
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.open && data.close) {
+            currentOperatingHours = { open: data.open, close: data.close };
+            const openInput = document.getElementById('openTime');
+            const closeInput = document.getElementById('closeTime');
+            if (openInput && !openInput.value) openInput.value = data.open;
+            if (closeInput && !closeInput.value) closeInput.value = data.close;
+        }
+    }
+});
+
 onSnapshot(sessionsRef, (snapshot) => {
-    allSessionDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    allSessionDocs = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+    performLazyCheckoutsOnAll();
     renderTable();
 });
+
+// Auto Checkout Lazy Routine for Admin
+async function performLazyCheckoutsOnAll() {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const [closeH, closeM] = (currentOperatingHours.close || "21:00").split(':').map(Number);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const closeMinutes = closeH * 60 + closeM;
+
+    allSessionDocs.forEach(async (session) => {
+        if (session.status === "Inside") {
+            const checkInTime = session.checkInTime ? session.checkInTime.toDate() : new Date();
+            const checkInDateStr = checkInTime.toISOString().split('T')[0];
+
+            const isPastDate = checkInDateStr < todayStr;
+            const isPastClosingToday = (checkInDateStr === todayStr && currentMinutes >= closeMinutes);
+
+            if (isPastDate || isPastClosingToday) {
+                const closingDate = new Date(checkInTime);
+                closingDate.setHours(closeH, closeM, 0, 0);
+                if (closingDate.getTime() <= checkInTime.getTime()) {
+                    closingDate.setTime(checkInTime.getTime() + 60000);
+                }
+
+                try {
+                    await updateDoc(doc(db, "sessions", session.id), {
+                        status: "Out",
+                        checkOutTime: Timestamp.fromDate(closingDate),
+                        autoCheckedOut: true
+                    });
+                } catch (e) {
+                    console.error("Admin lazy checkout failed:", e);
+                }
+            }
+        }
+    });
+}
 
 function renderTable() {
     if (!rosterBody) return;
@@ -102,6 +157,10 @@ function renderTable() {
         let checkInStr = data.checkInTime ? data.checkInTime.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—";
         let checkOutStr = data.checkOutTime ? data.checkOutTime.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—";
         
+        if (data.autoCheckedOut) {
+            checkOutStr += " (Auto)";
+        }
+
         const statusHTML = isInside ? `<span class="status in">IN LAB</span>` : `<span class="status out">OUT</span>`;
 
         const tr = document.createElement('tr');
@@ -163,9 +222,7 @@ async function handleManualOverride(e) {
     }
 }
 
-// ----------------------------------------------------
 // SCHEDULE MANAGER LOGIC
-// ----------------------------------------------------
 const scheduleDay = document.getElementById('scheduleDay');
 const scheduleSubject = document.getElementById('scheduleSubject');
 const scheduleStart = document.getElementById('scheduleStart');
@@ -204,14 +261,13 @@ if (addScheduleBtn) {
     });
 }
 
-// Listen for schedules real-time
 onSnapshot(query(schedulesRef, orderBy('day')), (snapshot) => {
     if (!scheduleBody) return;
     scheduleBody.innerHTML = '';
     
     const daysOrder = { "Monday": 1, "Tuesday": 2, "Wednesday": 3, "Thursday": 4, "Friday": 5, "Saturday": 6, "Sunday": 7 };
     
-    let schedules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let schedules = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
     schedules.sort((a, b) => {
         if (daysOrder[a.day] !== daysOrder[b.day]) return daysOrder[a.day] - daysOrder[b.day];
         return a.startTime.localeCompare(b.startTime);
@@ -248,9 +304,7 @@ onSnapshot(query(schedulesRef, orderBy('day')), (snapshot) => {
     });
 });
 
-// ----------------------------------------------------
 // TAB SWITCHING LOGIC
-// ----------------------------------------------------
 const tabs = document.querySelectorAll('.tab');
 const tabContents = document.querySelectorAll('.tab-content');
 
@@ -266,7 +320,6 @@ tabs.forEach((tab) => {
         }
     });
 });
-
 
 if (saveHoursBtn) {
     saveHoursBtn.addEventListener('click', async () => {
@@ -305,8 +358,12 @@ if (exportBtn) {
             const data = docSnap.data();
             const dateStr = data.checkInTime ? data.checkInTime.toDate().toISOString().split('T')[0] : "—";
             const checkInStr = data.checkInTime ? data.checkInTime.toDate().toLocaleTimeString() : "—";
-            const checkOutStr = data.checkOutTime ? data.checkOutTime.toDate().toLocaleTimeString() : "—";
+            let checkOutStr = data.checkOutTime ? data.checkOutTime.toDate().toLocaleTimeString() : "—";
             
+            if (data.autoCheckedOut) {
+                checkOutStr += " (Auto)";
+            }
+
             const row = [
                 dateStr,
                 `"${data.name || ''}"`,

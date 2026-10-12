@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, updateDoc, doc, getDoc, query, where, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, updateDoc, doc, getDoc, query, where, onSnapshot, serverTimestamp, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyATXyz4bLskXvDHBAZrlbtg14e1_c12pPo",
@@ -50,21 +50,92 @@ const scheduleListContainer = document.getElementById('scheduleListContainer');
 const closeScheduleIcon = document.getElementById('closeScheduleIcon');
 const dayPills = document.querySelectorAll('.day-pill');
 
+// Schedule Banner Elements
+const scheduleBanner = document.getElementById('scheduleBanner');
+const scheduleStatusDot = document.getElementById('scheduleStatusDot');
+const scheduleStatusText = document.getElementById('scheduleStatusText');
+const operatingHoursText = document.getElementById('operatingHoursText');
+
 // Global state variables
 let allSchedules = [];
 let selectedDay = getCurrentDayString();
 let activeSessionId = null;
 let isSystemLocked = false;
 let currentUserData = null;
-let userProfileData = null; // Stores yearLevel & program from Firestore
+let userProfileData = null;
+let currentOperatingHours = { open: "07:30", close: "21:00" };
 
-// Cooldown Configuration (60 seconds = 1 minute)
+// Cooldown Configuration
 const COOLDOWN_SECONDS = 60;
 let cooldownInterval = null;
 
 function getCurrentDayString() {
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     return days[new Date().getDay()];
+}
+
+// Check if lab is currently open
+function isLabOperating() {
+    if (!currentOperatingHours.open || !currentOperatingHours.close) return true;
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const [openH, openM] = currentOperatingHours.open.split(':').map(Number);
+    const [closeH, closeM] = currentOperatingHours.close.split(':').map(Number);
+
+    const openMinutes = openH * 60 + openM;
+    const closeMinutes = closeH * 60 + closeM;
+
+    return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+}
+
+// Calculate retroactive closing timestamp for Lazy Checkout
+function getOfficialClosingTimestamp(checkInTimestamp) {
+    const checkInDate = checkInTimestamp ? checkInTimestamp.toDate() : new Date();
+    const closingDate = new Date(checkInDate);
+    const [closeH, closeM] = (currentOperatingHours.close || "21:00").split(':').map(Number);
+    
+    closingDate.setHours(closeH, closeM, 0, 0);
+    
+    // If check-in happened after close time, default to check-in time + 1 min
+    if (closingDate.getTime() <= checkInDate.getTime()) {
+        closingDate.setTime(checkInDate.getTime() + 60000);
+    }
+    return Timestamp.fromDate(closingDate);
+}
+
+// Evaluate Lazy Checkout for a single session
+async function performLazyCheckoutIfNeeded(sessionDoc) {
+    if (!sessionDoc || sessionDoc.data().status !== "Inside") return false;
+
+    const data = sessionDoc.data();
+    const checkInTime = data.checkInTime ? data.checkInTime.toDate() : new Date();
+    const now = new Date();
+
+    const checkInDateStr = checkInTime.toISOString().split('T')[0];
+    const todayStr = now.toISOString().split('T')[0];
+
+    const [closeH, closeM] = (currentOperatingHours.close || "21:00").split(':').map(Number);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const closeMinutes = closeH * 60 + closeM;
+
+    const isPastDate = checkInDateStr < todayStr;
+    const isPastClosingToday = (checkInDateStr === todayStr && currentMinutes >= closeMinutes);
+
+    if (isPastDate || isPastClosingToday) {
+        try {
+            const closingTimestamp = getOfficialClosingTimestamp(data.checkInTime);
+            await updateDoc(doc(db, "sessions", sessionDoc.id), {
+                status: "Out",
+                checkOutTime: closingTimestamp,
+                autoCheckedOut: true
+            });
+            return true;
+        } catch (err) {
+            console.error("Lazy checkout update error:", err);
+        }
+    }
+    return false;
 }
 
 // COOLDOWN LOGIC
@@ -79,43 +150,56 @@ function getRemainingCooldownSeconds() {
 
 function updateCooldownUI() {
     const remaining = getRemainingCooldownSeconds();
+    const labOpen = isLabOperating();
     
-    if (remaining > 0) {
-        if (activeSessionId) {
-            if (checkOutBtn) {
-                checkOutBtn.disabled = true;
-                checkOutBtn.style.opacity = "0.6";
-                checkOutBtn.style.cursor = "not-allowed";
-                checkOutBtn.textContent = `CHECK OUT (${remaining}s)`;
-            }
-        } else {
-            if (openPurposeModalBtn && !isSystemLocked) {
+    if (openPurposeModalBtn) {
+        if (isSystemLocked) {
+            openPurposeModalBtn.textContent = "🔒 CHECK-INS TEMPORARILY LOCKED";
+            openPurposeModalBtn.style.backgroundColor = "#94a3b8";
+            openPurposeModalBtn.style.cursor = "not-allowed";
+            openPurposeModalBtn.disabled = true;
+        } else if (!labOpen) {
+            openPurposeModalBtn.textContent = "🔒 LABORATORY CLOSED";
+            openPurposeModalBtn.style.backgroundColor = "#94a3b8";
+            openPurposeModalBtn.style.cursor = "not-allowed";
+            openPurposeModalBtn.disabled = true;
+        } else if (remaining > 0) {
+            if (!activeSessionId) {
                 openPurposeModalBtn.disabled = true;
                 openPurposeModalBtn.style.opacity = "0.6";
                 openPurposeModalBtn.style.cursor = "not-allowed";
                 openPurposeModalBtn.textContent = `PLEASE WAIT (${remaining}s)`;
             }
+        } else {
+            if (!activeSessionId) {
+                openPurposeModalBtn.disabled = false;
+                openPurposeModalBtn.style.opacity = "1";
+                openPurposeModalBtn.style.backgroundColor = "";
+                openPurposeModalBtn.style.cursor = "pointer";
+                openPurposeModalBtn.textContent = "CHECK IN TO LABORATORY";
+            }
         }
-    } else {
-        if (checkOutBtn) {
+    }
+
+    if (checkOutBtn) {
+        if (remaining > 0 && activeSessionId) {
+            checkOutBtn.disabled = true;
+            checkOutBtn.style.opacity = "0.6";
+            checkOutBtn.style.cursor = "not-allowed";
+            checkOutBtn.textContent = `CHECK OUT (${remaining}s)`;
+        } else {
             checkOutBtn.disabled = false;
             checkOutBtn.style.opacity = "1";
             checkOutBtn.style.cursor = "pointer";
             checkOutBtn.textContent = "CHECK OUT";
         }
-        if (openPurposeModalBtn && !isSystemLocked) {
-            openPurposeModalBtn.disabled = false;
-            openPurposeModalBtn.style.opacity = "1";
-            openPurposeModalBtn.style.cursor = "pointer";
-            openPurposeModalBtn.textContent = "CHECK IN TO LABORATORY";
-        }
     }
+
     return remaining;
 }
 
 function startCooldownTicker() {
     if (cooldownInterval) clearInterval(cooldownInterval);
-    
     const remaining = updateCooldownUI();
     if (remaining > 0) {
         cooldownInterval = setInterval(() => {
@@ -131,6 +215,10 @@ function startCooldownTicker() {
 // Modal Controls - Check In
 if (openPurposeModalBtn) {
     openPurposeModalBtn.addEventListener('click', () => {
+        if (!isLabOperating()) {
+            alert(`Laboratory is closed. Operating hours are ${operatingHoursText ? operatingHoursText.textContent : "7:30 AM – 9:00 PM"}.`);
+            return;
+        }
         if (isSystemLocked) {
             alert("Check-ins are currently locked by the administrator.");
             return;
@@ -152,25 +240,20 @@ if (closeModalBtn) {
 
 if (purposeModal) {
     purposeModal.addEventListener('click', (e) => {
-        if (e.target === purposeModal) {
-            purposeModal.classList.add('hidden');
-        }
+        if (e.target === purposeModal) purposeModal.classList.add('hidden');
     });
 }
 
-// Option card selection logic
 optionCards.forEach(card => {
     card.addEventListener('click', () => {
         const radio = card.querySelector('input[type="radio"]');
-        if (radio) {
-            radio.checked = true;
-        }
+        if (radio) radio.checked = true;
         optionCards.forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
     });
 });
 
-// Modal Controls - Schedule
+// Schedule Modal Controls
 function closeSchedule() {
     if (scheduleModal) scheduleModal.classList.add('hidden');
 }
@@ -211,7 +294,6 @@ function updateDayPillsUI() {
     });
 }
 
-// Check if a class is currently ongoing
 function checkIsOngoing(startTimeStr, endTimeStr, schedDay) {
     const currentDay = getCurrentDayString();
     if (schedDay !== currentDay && schedDay !== currentDay.substring(0, 3)) return false;
@@ -238,7 +320,6 @@ function checkIsOngoing(startTimeStr, endTimeStr, schedDay) {
     return currentMinutes >= startTotal && currentMinutes <= endTotal;
 }
 
-// Render Schedule Table Content
 function renderScheduleTable() {
     if (!scheduleListContainer) return;
     scheduleListContainer.innerHTML = '';
@@ -260,10 +341,8 @@ function renderScheduleTable() {
 
     daySchedules.forEach(sched => {
         const isOngoing = checkIsOngoing(sched.startTime, sched.endTime, sched.day);
-        
         const row = document.createElement('div');
         row.className = `schedule-row ${isOngoing ? 'ongoing' : ''}`;
-        
         row.innerHTML = `
             <div class="col-time">${formatTime(sched.startTime)} - ${formatTime(sched.endTime)}</div>
             <div class="col-course">
@@ -275,7 +354,6 @@ function renderScheduleTable() {
     });
 }
 
-// REAL-TIME: Listen to Schedules
 function listenToSchedules() {
     const schedulesRef = collection(db, "schedules");
     onSnapshot(schedulesRef, (snapshot) => {
@@ -286,7 +364,6 @@ function listenToSchedules() {
     }, (err) => console.error("Schedules listener error:", err));
 }
 
-// REAL-TIME: Listen to lab stats for live dashboard updates
 function listenToLabStats() {
     const sessionsRef = collection(db, "sessions");
     const q = query(sessionsRef, where("status", "==", "Inside"));
@@ -310,14 +387,18 @@ function listenToLabStats() {
     }, (err) => console.error("Lab stats listener error:", err));
 }
 
-// REAL-TIME: Listen to current user's session status
 function listenToUserStatus(uid) {
     const sessionsRef = collection(db, "sessions");
     const q = query(sessionsRef, where("uid", "==", uid), where("status", "==", "Inside"), limit(1));
     
-    onSnapshot(q, (snapshot) => {
+    onSnapshot(q, async (snapshot) => {
         if (!snapshot.empty) {
             const sessionDoc = snapshot.docs[0];
+            
+            // Lazy checkout check
+            const checkedOut = await performLazyCheckoutIfNeeded(sessionDoc);
+            if (checkedOut) return;
+
             activeSessionId = sessionDoc.id;
             if (currentPurpose) currentPurpose.textContent = sessionDoc.data().purpose || "--";
             
@@ -336,55 +417,54 @@ function listenToUserStatus(uid) {
     }, (err) => console.error("User status listener error:", err));
 }
 
-// REAL-TIME: Listen for admin lock status
 function listenToSystemLock() {
     const systemStatusRef = doc(db, "settings", "systemStatus");
     onSnapshot(systemStatusRef, (docSnap) => {
         isSystemLocked = docSnap.exists() && docSnap.data().isLocked;
-        
-        if (openPurposeModalBtn) {
-            if (isSystemLocked) {
-                openPurposeModalBtn.textContent = "🔒 CHECK-INS TEMPORARILY LOCKED";
-                openPurposeModalBtn.style.backgroundColor = "#94a3b8";
-                openPurposeModalBtn.style.cursor = "not-allowed";
-                openPurposeModalBtn.disabled = true;
-                if (purposeModal) purposeModal.classList.add('hidden');
-            } else {
-                openPurposeModalBtn.style.backgroundColor = "";
-                openPurposeModalBtn.disabled = false;
-                updateCooldownUI();
-            }
-        }
+        updateCooldownUI();
     }, (err) => console.error("System lock listener error:", err));
 }
 
-// REAL-TIME: Listen for operating hours
 function listenToOperatingHours() {
     const hoursRef = doc(db, "settings", "operatingHours");
     onSnapshot(hoursRef, (docSnap) => {
         if (!docSnap.exists()) return;
         const data = docSnap.data();
         if (data.open && data.close) {
+            currentOperatingHours = { open: data.open, close: data.close };
+
             const formatTime = (timeStr) => {
                 const [h, m] = timeStr.split(':');
                 const date = new Date();
                 date.setHours(parseInt(h), parseInt(m));
                 return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
             };
-            const operatingHoursText = document.getElementById('operatingHoursText');
             if (operatingHoursText) {
                 operatingHoursText.textContent = `${formatTime(data.open)} – ${formatTime(data.close)}`;
             }
+
+            const openState = isLabOperating();
+            if (scheduleBanner) {
+                scheduleBanner.style.backgroundColor = openState ? "#ecfdf5" : "#fef2f2";
+                scheduleBanner.style.borderColor = openState ? "#a7f3d0" : "#fecaca";
+                scheduleBanner.style.color = openState ? "#047857" : "#b91c1c";
+            }
+            if (scheduleStatusDot) {
+                scheduleStatusDot.style.backgroundColor = openState ? "#10b981" : "#ef4444";
+            }
+            if (scheduleStatusText) {
+                scheduleStatusText.textContent = openState ? "Open" : "Closed";
+            }
+
+            updateCooldownUI();
         }
     }, (err) => console.error("Operating hours listener error:", err));
 }
 
-// Auth State Listener
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUserData = user;
 
-        // Fetch user profile from 'users' collection to retrieve yearLevel and program
         try {
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
@@ -406,10 +486,10 @@ onAuthStateChanged(auth, async (user) => {
             userAvatar.textContent = initials;
         }
 
+        listenToOperatingHours();
         listenToUserStatus(user.uid);
         listenToLabStats();
         listenToSystemLock();
-        listenToOperatingHours();
         listenToSchedules();
     } else {
         window.location.href = 'login.html';
@@ -421,6 +501,12 @@ if (confirmCheckInBtn) {
     confirmCheckInBtn.addEventListener('click', async () => {
         if (!currentUserData) {
             alert("User profile is still initializing. Please try again in a moment.");
+            return;
+        }
+
+        if (!isLabOperating()) {
+            alert("Check-ins are not allowed outside operating hours.");
+            if (purposeModal) purposeModal.classList.add('hidden');
             return;
         }
 
@@ -458,8 +544,6 @@ if (confirmCheckInBtn) {
             };
             
             await addDoc(collection(db, "sessions"), sessionData);
-            
-            // Record timestamp for 1 min cooldown
             localStorage.setItem(`lastActionTime_${currentUserData.uid}`, Date.now().toString());
             
             showNotification("Checked In Successfully", "notif-green");
@@ -497,9 +581,7 @@ if (checkOutBtn) {
                 checkOutTime: serverTimestamp()
             });
 
-            // Record timestamp for 1 min cooldown
             localStorage.setItem(`lastActionTime_${currentUserData.uid}`, Date.now().toString());
-
             showNotification("Checked Out Successfully", "notif-red");
             startCooldownTicker();
         } catch (error) {
