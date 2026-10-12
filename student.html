@@ -19,13 +19,19 @@
             --primary-green-hover: #059669;
             --danger-red: #ef4444;
             --danger-red-hover: #dc2626;
-            --border-radius: 20px;
+            --border-radius: 16px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
         }
 
         body {
@@ -35,29 +41,29 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px 12px;
+            padding: 10px 12px;
         }
 
         .app-wrapper {
             width: 100%;
-            max-width: 440px;
+            max-width: 420px;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            justify-content: space-between;
+            gap: 8px;
         }
 
         /* Header & Brand Section */
         .brand-section {
             text-align: center;
-            padding: 8px 0 4px;
         }
 
         .brand-logo-img {
-            max-width: 170px;
+            max-width: 110px;
             height: auto;
             display: block;
-            margin: 0 auto 12px;
+            margin: 0 auto 4px;
             object-fit: contain;
         }
 
@@ -65,44 +71,44 @@
             display: inline-block;
             background-color: var(--badge-bg);
             color: var(--badge-text);
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
-            letter-spacing: 0.5px;
-            padding: 5px 14px;
-            border-radius: 20px;
-            margin-bottom: 8px;
+            letter-spacing: 0.4px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            margin-bottom: 4px;
         }
 
         .portal-title {
-            font-size: 26px;
+            font-size: 20px;
             font-weight: 800;
             color: #0f172a;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.4px;
+            line-height: 1.1;
         }
 
         .portal-subtitle {
-            font-size: 13px;
+            font-size: 11px;
             color: var(--text-sub);
-            margin-top: 3px;
+            margin-top: 2px;
         }
 
         .top-bar {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: -4px;
         }
 
         .btn-schedule {
             background-color: #e0e7ff;
             color: #4338ca;
             border: none;
-            padding: 9px 16px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            border-radius: 10px;
             font-weight: 700;
-            font-size: 13px;
+            font-size: 11.5px;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 6px rgba(67, 56, 202, 0.08);
+            box-shadow: 0 2px 5px rgba(67, 56, 202, 0.08);
         }
 
         .btn-schedule:hover {
@@ -111,24 +117,25 @@
 
         /* Banner */
         .schedule-banner {
-    background-color: var(--open-bg);
-    border: 1px solid #a7f3d0;
-    color: var(--open-text);
-    text-align: center;
-    padding: 10px 12px;
-    border-radius: var(--border-radius);
-    font-size: 12px; /* Reduced slightly so 46+ characters fit on narrow mobile screens */
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    white-space: nowrap; /* Prevents text from breaking onto a second line */
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.06);
-}
+            background-color: var(--open-bg);
+            border: 1px solid #a7f3d0;
+            color: var(--open-text);
+            text-align: center;
+            padding: 8px 10px;
+            border-radius: var(--border-radius);
+            font-size: 11.5px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.05);
+        }
+
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             background-color: #10b981;
             border-radius: 50%;
             display: inline-block;
@@ -139,34 +146,34 @@
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            gap: 8px;
         }
 
         .stat-card {
             background: var(--card-bg);
-            padding: 16px 12px;
+            padding: 10px 8px;
             border-radius: var(--border-radius);
             text-align: center;
             border: 1px solid #f1f5f9;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 2px;
         }
 
         .stat-title {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-sub);
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .stat-value {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 800;
             color: var(--text-main);
         }
@@ -174,31 +181,31 @@
         /* User Card */
         .user-card {
             background: var(--card-bg);
-            padding: 16px;
+            padding: 10px 12px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
         }
 
         .user-profile {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             min-width: 0;
         }
 
         .avatar {
-            width: 44px;
-            height: 44px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: linear-gradient(135deg, #a855f7, #ec4899);
             color: white;
             font-weight: 800;
-            font-size: 15px;
+            font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -210,7 +217,7 @@
         }
 
         .user-details h4 {
-            font-size: 15px;
+            font-size: 13.5px;
             font-weight: 700;
             white-space: nowrap;
             overflow: hidden;
@@ -218,7 +225,7 @@
         }
 
         .user-details p {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-sub);
             white-space: nowrap;
             overflow: hidden;
@@ -233,39 +240,39 @@
         }
 
         .btn-sm-logout {
-    border: none;
-    padding: 6px 14px;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s ease;
-    background-color: #fef2f2;
-    color: var(--danger-red);
-}
+            border: none;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            background-color: #fef2f2;
+            color: var(--danger-red);
+        }
 
-.btn-sm-logout:hover {
-    background-color: #fee2e2;
-}
+        .btn-sm-logout:hover {
+            background-color: #fee2e2;
+        }
 
         /* Main Action Card */
         .main-card {
             background: var(--card-bg);
-            padding: 24px 20px;
+            padding: 16px 14px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             text-align: center;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 14px;
+            gap: 10px;
         }
 
         .section-label {
-            font-size: 11px;
-            letter-spacing: 1px;
+            font-size: 10px;
+            letter-spacing: 0.8px;
             font-weight: 800;
             color: #94a3b8;
             text-transform: uppercase;
@@ -274,12 +281,12 @@
         .status-pill {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 18px;
-            border-radius: 20px;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 16px;
             background-color: #f1f5f9;
             color: #475569;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
         }
 
@@ -289,8 +296,8 @@
         }
 
         .pill-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background-color: #94a3b8;
         }
@@ -300,26 +307,26 @@
         }
 
         .action-subtext {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-sub);
         }
 
         .btn-primary-action, .btn-checkout-action {
             width: 100%;
-            padding: 16px;
-            border-radius: 14px;
+            padding: 13px;
+            border-radius: 12px;
             border: none;
             color: white;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 800;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .btn-primary-action {
             background-color: var(--primary-green);
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
         }
 
         .btn-primary-action:hover {
@@ -328,7 +335,7 @@
 
         .btn-checkout-action {
             background-color: var(--danger-red);
-            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
         }
 
         .btn-checkout-action:hover {
@@ -354,10 +361,10 @@
 
         .modal-card {
             background: #ffffff;
-            border-radius: 28px;
-            padding: 24px 20px 20px;
+            border-radius: 24px;
+            padding: 20px 18px 18px;
             width: 100%;
-            max-width: 440px;
+            max-width: 420px;
             box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
             animation: modalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -368,26 +375,26 @@
         }
 
         .modal-header-text h3 {
-            font-size: 21px;
+            font-size: 19px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: -0.4px;
         }
 
         .modal-header-text p {
-            font-size: 13.5px;
+            font-size: 12.5px;
             color: #64748b;
-            margin-top: 4px;
-            margin-bottom: 18px;
+            margin-top: 2px;
+            margin-bottom: 14px;
         }
 
         /* Day Pills Bar in Schedule Modal */
         .day-pills-container {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             overflow-x: auto;
-            margin-bottom: 16px;
-            padding: 4px 2px 8px 2px;
+            margin-bottom: 14px;
+            padding: 2px 2px 6px 2px;
             scrollbar-width: none;
         }
 
@@ -396,12 +403,12 @@
         }
 
         .day-pill {
-            padding: 8px 16px;
+            padding: 7px 14px;
             border: none;
-            border-radius: 20px;
+            border-radius: 18px;
             background: #f1f5f9;
             color: #64748b;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -416,40 +423,34 @@
         .day-pill.active {
             background: linear-gradient(135deg, #6366f1, #a855f7);
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
         }
 
-        /* Schedule Row Cards (Fixed Overflow & Clipping) */
+        /* Schedule Row Cards */
         .schedule-row {
             position: relative;
             overflow: hidden;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 16px;
-            padding: 14px 16px;
-            margin-bottom: 10px;
-            border-radius: 16px;
+            gap: 12px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            border-radius: 14px;
             background: #ffffff;
             border: 1px solid #f1f5f9;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        /* Inset Left Accent Bar */
         .schedule-row::before {
             content: '';
             position: absolute;
             left: 0;
             top: 0;
             bottom: 0;
-            width: 5px;
+            width: 4px;
             background-color: #818cf8;
-        }
-
-        .schedule-row:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
         }
 
         .schedule-row.ongoing {
@@ -462,7 +463,7 @@
         }
 
         .col-time {
-            font-size: 12.5px;
+            font-size: 12px;
             color: #64748b;
             font-weight: 700;
             white-space: nowrap;
@@ -476,32 +477,31 @@
             align-items: flex-end;
             text-align: right;
             min-width: 0;
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: -0.2px;
             overflow-wrap: break-word;
-            line-height: 1.35;
+            line-height: 1.3;
         }
 
         .ongoing-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            font-size: 10.5px;
+            gap: 4px;
+            font-size: 10px;
             font-weight: 800;
             background-color: #10b981;
             color: white;
-            padding: 3px 8px;
-            border-radius: 10px;
-            margin-top: 5px;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+            padding: 2px 7px;
+            border-radius: 8px;
+            margin-top: 4px;
+            letter-spacing: 0.4px;
         }
 
         .pulse-dot {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
             background-color: #ffffff;
             border-radius: 50%;
             display: inline-block;
@@ -516,9 +516,9 @@
 
         .empty-state {
             text-align: center;
-            padding: 36px 16px;
+            padding: 30px 16px;
             color: #94a3b8;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
         }
 
@@ -526,19 +526,19 @@
         .modal-options {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .option-card {
             width: 100%;
-            padding: 16px 18px;
+            padding: 14px 16px;
             border: 2px solid #e2e8f0;
-            border-radius: 18px;
+            border-radius: 16px;
             background: #f8fafc;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             transition: all 0.2s ease;
             user-select: none;
         }
@@ -551,7 +551,7 @@
         .option-card.selected {
             border-color: #6366f1;
             background: #f5f3ff;
-            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.15);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12);
         }
 
         .option-card input[type="radio"] {
@@ -559,10 +559,10 @@
         }
 
         .custom-radio {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            border: 2.5px solid #94a3b8;
+            border: 2px solid #94a3b8;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -577,45 +577,45 @@
 
         .option-card.selected .custom-radio::after {
             content: '';
-            width: 10px;
-            height: 10px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             background-color: #6366f1;
         }
 
         .option-icon {
-            font-size: 24px;
+            font-size: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             background: #ffffff;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
             flex-shrink: 0;
         }
 
         .option-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 800;
             color: #0f172a;
         }
 
         .modal-actions {
             display: flex;
-            gap: 12px;
-            margin-top: 22px;
+            gap: 10px;
+            margin-top: 18px;
         }
 
         .btn-cancel {
             flex: 1;
-            padding: 14px;
-            border-radius: 16px;
+            padding: 12px;
+            border-radius: 14px;
             border: none;
             background-color: #f1f5f9;
             color: #475569;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
@@ -628,16 +628,16 @@
 
         .btn-confirm {
             flex: 1.4;
-            padding: 14px;
-            border-radius: 16px;
+            padding: 12px;
+            border-radius: 14px;
             border: none;
             background: linear-gradient(135deg, #6366f1, #a855f7);
             color: #ffffff;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 6px 16px rgba(168, 85, 247, 0.3);
+            box-shadow: 0 5px 14px rgba(168, 85, 247, 0.28);
         }
 
         .btn-confirm:hover {
@@ -648,10 +648,10 @@
         .close-icon-btn {
             background: #f1f5f9;
             border: none;
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            font-size: 14px;
+            font-size: 13px;
             color: #64748b;
             cursor: pointer;
             display: flex;
@@ -669,19 +669,19 @@
 
         .notification {
             position: fixed;
-            top: 20px;
+            top: 16px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 30px;
             color: white;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
             z-index: 2000;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
         }
         .notif-green { background-color: var(--primary-green); }
         .notif-red { background-color: var(--danger-red); }
@@ -730,17 +730,17 @@
         </div>
 
         <div class="user-card">
-    <div class="user-profile">
-        <div class="avatar" id="userAvatar">--</div>
-        <div class="user-details">
-            <h4 id="userName">Loading...</h4>
-            <p id="userInfo">Logged in...</p>
+            <div class="user-profile">
+                <div class="avatar" id="userAvatar">--</div>
+                <div class="user-details">
+                    <h4 id="userName">Loading...</h4>
+                    <p id="userInfo">Logged in...</p>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="btn-sm-logout" id="logoutBtn">Log Out</button>
+            </div>
         </div>
-    </div>
-    <div class="user-actions">
-        <button class="btn-sm-logout" id="logoutBtn">Log Out</button>
-    </div>
-</div>
 
         <div class="main-card">
             <div class="section-label">CURRENT LABORATORY STATUS</div>
@@ -761,7 +761,7 @@
             </div>
 
             <div id="checkOutView" class="hidden" style="width: 100%;">
-                <p style="font-size: 13px; color: var(--text-sub); margin-bottom: 12px;">
+                <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">
                     Checked in for: <strong id="currentPurpose" style="color: var(--text-main);">--</strong>
                 </p>
                 <button class="btn-checkout-action" id="checkOutBtn">
@@ -831,7 +831,7 @@
             </div>
 
             <!-- Schedule List Container -->
-            <div id="scheduleListContainer" style="min-height: 150px; max-height: 320px; overflow-y: auto; padding-right: 2px;">
+            <div id="scheduleListContainer" style="min-height: 140px; max-height: 280px; overflow-y: auto; padding-right: 2px;">
                 <!-- JavaScript will inject schedule rows here -->
             </div>
 
