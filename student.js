@@ -47,6 +47,18 @@ const viewScheduleBtn = document.getElementById('viewScheduleBtn');
 const closeScheduleModalBtn = document.getElementById('closeScheduleModalBtn');
 const scheduleListContainer = document.getElementById('scheduleListContainer');
 
+const closeScheduleIcon = document.getElementById('closeScheduleIcon');
+const dayPills = document.querySelectorAll('.day-pill');
+
+// Global schedule variables
+let allSchedules = [];
+let selectedDay = getCurrentDayString();
+
+function getCurrentDayString() {
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    return days[new Date().getDay()];
+}
+
 let activeSessionId = null;
 let isSystemLocked = false;
 let currentUserData = null;
@@ -86,24 +98,111 @@ optionCards.forEach(card => {
 });
 
 // Modal Controls - Schedule
+function closeSchedule() {
+    if (scheduleModal) scheduleModal.classList.add('hidden');
+}
+
 if (viewScheduleBtn) {
     viewScheduleBtn.addEventListener('click', () => {
+        selectedDay = getCurrentDayString();
+        updateDayPillsUI();
+        renderScheduleTable();
         if (scheduleModal) scheduleModal.classList.remove('hidden');
     });
 }
 
-if (closeScheduleModalBtn) {
-    closeScheduleModalBtn.addEventListener('click', () => {
-        if (scheduleModal) scheduleModal.classList.add('hidden');
-    });
-}
+if (closeScheduleModalBtn) closeScheduleModalBtn.addEventListener('click', closeSchedule);
+if (closeScheduleIcon) closeScheduleIcon.addEventListener('click', closeSchedule);
 
 if (scheduleModal) {
     scheduleModal.addEventListener('click', (e) => {
-        if (e.target === scheduleModal) {
-            scheduleModal.classList.add('hidden');
+        if (e.target === scheduleModal) closeSchedule();
+    });
+}
+
+// Day Pill Logic
+dayPills.forEach(pill => {
+    pill.addEventListener('click', (e) => {
+        selectedDay = e.target.getAttribute('data-day');
+        updateDayPillsUI();
+        renderScheduleTable();
+    });
+});
+
+function updateDayPillsUI() {
+    dayPills.forEach(pill => {
+        if (pill.getAttribute('data-day') === selectedDay) {
+            pill.classList.add('active');
+        } else {
+            pill.classList.remove('active');
         }
     });
+}
+
+// Check if a class is currently ongoing
+function checkIsOngoing(startTimeStr, endTimeStr, schedDay) {
+    if (schedDay !== getCurrentDayString()) return false;
+    
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    const [startH, startM] = startTimeStr.split(':').map(Number);
+    const startTotal = startH * 60 + startM;
+    
+    const [endH, endM] = endTimeStr.split(':').map(Number);
+    const endTotal = endH * 60 + endM;
+    
+    return currentMinutes >= startTotal && currentMinutes <= endTotal;
+}
+
+// Render the Table Content
+function renderScheduleTable() {
+    if (!scheduleListContainer) return;
+    scheduleListContainer.innerHTML = '';
+    
+    const daySchedules = allSchedules.filter(s => s.day === selectedDay);
+    daySchedules.sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+    if (daySchedules.length === 0) {
+        scheduleListContainer.innerHTML = '<div class="empty-state">No class sessions scheduled</div>';
+        return;
+    }
+
+    const formatTime = (timeStr) => {
+        const [h, m] = timeStr.split(':');
+        const date = new Date();
+        date.setHours(parseInt(h), parseInt(m));
+        return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    };
+
+    daySchedules.forEach(sched => {
+        const isOngoing = checkIsOngoing(sched.startTime, sched.endTime, sched.day);
+        
+        const row = document.createElement('div');
+        row.className = `schedule-row ${isOngoing ? 'ongoing' : ''}`;
+        
+        row.innerHTML = `
+            <div class="col-time">
+                ${formatTime(sched.startTime)} -<br>${formatTime(sched.endTime)}
+            </div>
+            <div class="col-course">
+                <span>${sched.subject}</span>
+                ${isOngoing ? '<span class="ongoing-badge">ONGOING</span>' : ''}
+            </div>
+        `;
+        scheduleListContainer.appendChild(row);
+    });
+}
+
+// REAL-TIME: Listen to Schedules added by Admin
+function listenToSchedules() {
+    const schedulesRef = collection(db, "schedules");
+    onSnapshot(schedulesRef, (snapshot) => {
+        allSchedules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (scheduleModal && !scheduleModal.classList.contains('hidden')) {
+            renderScheduleTable();
+        }
+    }, (err) => console.error("Schedules listener error:", err));
 }
 
 // REAL-TIME: Listen to all lab stats for live dashboard updates
