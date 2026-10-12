@@ -88,12 +88,15 @@ if (purposeModal) {
     });
 }
 
+// Fixed option card selection logic
 optionCards.forEach(card => {
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio && e.target !== radio) {
+            radio.checked = true;
+        }
         optionCards.forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
-        const radio = card.querySelector('input[type="radio"]');
-        if (radio) radio.checked = true;
     });
 });
 
@@ -120,10 +123,10 @@ if (scheduleModal) {
     });
 }
 
-// Day Pill Logic
+// Fixed Day Pill Logic (uses element reference instead of e.target)
 dayPills.forEach(pill => {
-    pill.addEventListener('click', (e) => {
-        selectedDay = e.target.getAttribute('data-day');
+    pill.addEventListener('click', () => {
+        selectedDay = pill.getAttribute('data-day');
         updateDayPillsUI();
         renderScheduleTable();
     });
@@ -254,7 +257,7 @@ function listenToUserStatus(uid) {
     }, (err) => console.error("User status listener error:", err));
 }
 
-// REAL-TIME: Listen for admin lock status
+// REAL-TIME: Listen for admin lock status (Does not hard-disable DOM button)
 function listenToSystemLock() {
     const systemStatusRef = doc(db, "settings", "systemStatus");
     onSnapshot(systemStatusRef, (docSnap) => {
@@ -262,13 +265,11 @@ function listenToSystemLock() {
         
         if (openPurposeModalBtn) {
             if (isSystemLocked) {
-                openPurposeModalBtn.disabled = true;
                 openPurposeModalBtn.textContent = "🔒 CHECK-INS TEMPORARILY LOCKED";
                 openPurposeModalBtn.style.backgroundColor = "#94a3b8";
                 openPurposeModalBtn.style.cursor = "not-allowed";
                 if (purposeModal) purposeModal.classList.add('hidden');
             } else {
-                openPurposeModalBtn.disabled = false;
                 openPurposeModalBtn.textContent = "CHECK IN TO LABORATORY";
                 openPurposeModalBtn.style.backgroundColor = "";
                 openPurposeModalBtn.style.cursor = "";
@@ -298,13 +299,7 @@ function listenToOperatingHours() {
     }, (err) => console.error("Operating hours listener error:", err));
 }
 
-// Initialize global real-time listeners immediately on load
-listenToLabStats();
-listenToSystemLock();
-listenToOperatingHours();
-listenToSchedules();
-
-// Auth State Listener
+// Auth State Listener - Initializes real-time listeners only after user is verified
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUserData = user;
@@ -319,7 +314,12 @@ onAuthStateChanged(auth, (user) => {
             userAvatar.textContent = initials;
         }
 
+        // Initialize real-time data after authentication
         listenToUserStatus(user.uid);
+        listenToLabStats();
+        listenToSystemLock();
+        listenToOperatingHours();
+        listenToSchedules();
     } else {
         window.location.href = 'login.html';
     }
@@ -366,10 +366,13 @@ if (confirmCheckInBtn) {
     });
 }
 
-// Check-Out Action
+// Check-Out Action with Feedback
 if (checkOutBtn) {
     checkOutBtn.addEventListener('click', async () => {
-        if (!activeSessionId) return;
+        if (!activeSessionId) {
+            alert("No active session found to check out.");
+            return;
+        }
         try {
             const sessionRef = doc(db, "sessions", activeSessionId);
             await updateDoc(sessionRef, {
