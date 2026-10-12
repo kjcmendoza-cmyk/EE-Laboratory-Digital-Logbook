@@ -36,7 +36,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 16px 12px;
+            padding: 12px;
         }
 
         .app-wrapper {
@@ -44,7 +44,7 @@
             max-width: 420px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         /* Header & Brand Section */
@@ -53,14 +53,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .brand-logo-img {
-            max-width: 120px;
+            max-width: 180px; /* Scaled up for visual balance */
             height: auto;
             display: block;
             object-fit: contain;
+            margin-bottom: 2px;
         }
 
         .header-action-row {
@@ -69,7 +70,6 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            margin-top: 2px;
         }
 
         .portal-badge {
@@ -78,7 +78,7 @@
             font-size: 10.5px;
             font-weight: 700;
             letter-spacing: 0.4px;
-            padding: 5px 12px;
+            padding: 4px 11px;
             border-radius: 12px;
         }
 
@@ -86,7 +86,7 @@
             background-color: #e0e7ff;
             color: #4338ca;
             border: none;
-            padding: 5px 12px;
+            padding: 4px 11px;
             border-radius: 12px;
             font-weight: 700;
             font-size: 11.5px;
@@ -106,7 +106,6 @@
             color: #0f172a;
             letter-spacing: -0.4px;
             line-height: 1.1;
-            margin-top: 2px;
         }
 
         .portal-subtitle {
@@ -120,7 +119,7 @@
             border: 1px solid #a7f3d0;
             color: var(--open-text);
             text-align: center;
-            padding: 9px 12px;
+            padding: 8px 12px;
             border-radius: var(--border-radius);
             font-size: 12px;
             font-weight: 700;
@@ -145,12 +144,12 @@
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 8px;
         }
 
         .stat-card {
             background: var(--card-bg);
-            padding: 12px 10px;
+            padding: 10px 8px;
             border-radius: var(--border-radius);
             text-align: center;
             border: 1px solid #f1f5f9;
@@ -159,20 +158,20 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 2px;
         }
 
         .stat-title {
-            font-size: 11.5px;
+            font-size: 11px;
             color: var(--text-sub);
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
 
         .stat-value {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 800;
             color: var(--text-main);
         }
@@ -180,7 +179,7 @@
         /* User Card */
         .user-card {
             background: var(--card-bg);
-            padding: 12px 14px;
+            padding: 10px 12px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             display: flex;
@@ -198,13 +197,13 @@
         }
 
         .avatar {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: linear-gradient(135deg, #a855f7, #ec4899);
             color: white;
             font-weight: 800;
-            font-size: 14px;
+            font-size: 13.5px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -216,7 +215,7 @@
         }
 
         .user-details h4 {
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 700;
             white-space: nowrap;
             overflow: hidden;
@@ -224,7 +223,7 @@
         }
 
         .user-details p {
-            font-size: 11.5px;
+            font-size: 11px;
             color: var(--text-sub);
             white-space: nowrap;
             overflow: hidden;
@@ -240,8 +239,8 @@
 
         .btn-sm-logout {
             border: none;
-            padding: 6px 12px;
-            border-radius: 10px;
+            padding: 5px 12px;
+            border-radius: 8px;
             font-size: 11.5px;
             font-weight: 700;
             cursor: pointer;
@@ -258,7 +257,7 @@
         /* Main Action Card */
         .main-card {
             background: var(--card-bg);
-            padding: 18px 16px;
+            padding: 14px 14px;
             border-radius: var(--border-radius);
             border: 1px solid #f1f5f9;
             text-align: center;
@@ -266,11 +265,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .section-label {
-            font-size: 10.5px;
+            font-size: 10px;
             letter-spacing: 0.8px;
             font-weight: 800;
             color: #94a3b8;
@@ -281,7 +280,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 14px;
+            padding: 5px 14px;
             border-radius: 16px;
             background-color: #f1f5f9;
             color: #475569;
@@ -306,13 +305,13 @@
         }
 
         .action-subtext {
-            font-size: 12px;
+            font-size: 11.5px;
             color: var(--text-sub);
         }
 
         .btn-primary-action, .btn-checkout-action {
             width: 100%;
-            padding: 14px;
+            padding: 13px;
             border-radius: 12px;
             border: none;
             color: white;
@@ -759,7 +758,7 @@
             </div>
 
             <div id="checkOutView" class="hidden" style="width: 100%;">
-                <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">
+                <p style="font-size: 11.5px; color: var(--text-sub); margin-bottom: 6px;">
                     Checked in for: <strong id="currentPurpose" style="color: var(--text-main);">--</strong>
                 </p>
                 <button class="btn-checkout-action" id="checkOutBtn">
